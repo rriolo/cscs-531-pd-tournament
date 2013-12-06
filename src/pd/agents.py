@@ -16,7 +16,7 @@ class Agent(object):
     # World context; agent needs to know this to ask about its surroundings.
     world = None
 
-    def __init__(self, world):
+    def __init__(self, world=None):
         '''
         Constructor, which initializes our agent.
         '''
@@ -24,10 +24,12 @@ class Agent(object):
         self.name = "RioloRA"
         self.world = world
         self.agent_id = None
-        self.resources = world.starting_resources
         self.x = 0
         self.y = 0
         self.request_birth = False
+
+        if world:
+            self.resources = world.starting_resources
 
 
     def send_agent_id ( self ):
@@ -50,3 +52,6 @@ class Agent(object):
         String representation for our Agent.
         '''
         return "Agent {0}".format(self.name)
+
+if __name__ == "__main__":
+    a = Agent(None)

@@ -45,15 +45,14 @@ the AgentRecord will keep trak  of
 
         '''
     # World context; agent needs to know this to ask about its surroundings.
-    world = None
-
-
-    def __init__(self, agent_ptr):
+    def __init__(self, agent_ptr, world):
+        self.world = world
+        self.max_lifetime = 100
         self.name = agent_ptr.name
-        self.agent_id = String.format( "%16s-%09s", agent_ptr.name, next_ID )
-        next_ID += 1
+        self.agent_id = "%16s-%09s" % (agent_ptr.name, self.world.next_ID )
+        self.world.next_ID += 1
         self.agent_ptr = agent_ptr
-        self.die_step = self.curT + self.max_lifetime - 1
+        self.die_step = self.world.curT + self.max_lifetime - 1
         self.resources =  world.starting_resources
 
         # fake srtuuff
@@ -87,7 +86,7 @@ class World(object):
     '''
 
     #
-    next_id = 0
+    next_ID = 0
     # Space
     space = None
 
@@ -210,8 +209,6 @@ class World(object):
             # Import the module
             __import__(module_name, globals(), locals(), ['*'])
 
-
-
             if self.debug > 0:
                 print ("       +++  open %s >>>" %  ( module_name ) )
 
@@ -220,20 +217,22 @@ class World(object):
                 object_value = getattr(sys.modules[module_name], object_name)
                 try:
                     # Instantiate.
-                    object_instance = object_value()
-
+                    object_instance = object_value(self)
                     # If the variable matches the Player class type, include.
                     if isinstance(object_instance,
                                   agents.Agent):
+                        print("Adding " + object_name)
                         # Set ourself as the tournament
                         object_instance.tournament = self
-                        # Add to list
-                        agent_list.append(object_instance)
 
                         # create a record for it
-                        agrec = AgentRecord( object_instance )
-                        self.agent_record_dict[ agrec.agent_id ] = object_instance
-                except Exception:
+                        agrec = AgentRecord( object_instance, self)
+                        object_instance.agent_record = agrec
+                        self.agent_records_dict[ object_instance.agent_id ] = object_instance
+
+                        # Add to list
+                        self.agent_list.append(object_instance)
+                except Exception, E:
                     pass
 
 
@@ -244,7 +243,7 @@ class World(object):
         for a in self.agent_list:
             aRec = a.agent_record
             age = aRec.max_lifetime - self.curT      ####  +/- 1   ??
-            print( "%s  %.1f  %.1f" % (agent_id, age , a.resources, aRec.resources) )
+            print( "%s  %.1f  %.1f %.1f" % (a.agent_id, age , a.resources, aRec.resources) )
 
 
     def compute(self):
@@ -268,14 +267,14 @@ class World(object):
 
         # paty  their bills
         for a in self.agent_list:
-            arec = agent_records_dict[ agent_id ]
-            a.resources =  a.resources - arec.total_decrement_Per_Step
-            arec.resources = arec.resources -  arec.total_decrement_Per_Step
+            arec = self.agent_records_dict[ a.agent_id ]
+#            a.resources =  a.resources - arec.total_decrement_Per_Step
+#            arec.resources = arec.resources -  arec.total_decrement_Per_Step
 
         self.applyTheGrimReaper()
 
         for a in self.agent_list:
-            if a.reqest_birth:
+            if a.request_birth:
                 a.tryBirth()
 
         if self.verbose > 3:
