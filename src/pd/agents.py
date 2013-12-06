@@ -13,19 +13,37 @@ class Agent(object):
     that the World needs to assume are available to "run."
     '''
 
-    # Agent name
-    name = None
-
     # World context; agent needs to know this to ask about its surroundings.
     world = None
 
-    def __init__(self, name, world):
+    def __init__(self, world):
         '''
         Constructor, which initializes our agent.
         '''
         # Set the name and world
-        self.name = name
+        self.name = "RioloRA"
         self.world = world
+        self.agent_id = None
+        self.resources = world.starting_resources
+        self.x = 0
+        self.y = 0
+        self.request_birth = False
+
+
+    def send_agent_id ( self ):
+        return agent_id;
+
+
+    def tryBirth(self):
+        print("%d tryBirth" % ( self.agent_id  ) )
+
+
+    def step(self):
+        print("%d step "  % ( self.agent_id  ) )
+
+
+
+
 
     def __repr__(self):
         '''
