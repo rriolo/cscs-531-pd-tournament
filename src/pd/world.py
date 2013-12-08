@@ -54,6 +54,7 @@ the AgentRecord will keep trak  of
         self.world.next_ID += 1
         self.agent_ptr = agent_ptr
         self.die_step = self.world.curT + self.max_lifetime - 1
+        self.age = 0
         self.resources = world.starting_resources
 
         # fake srtuuff
@@ -236,16 +237,17 @@ class World(object):
                 except Exception, E:
                     pass
 
-
-
     def printAllAgents (self):
-        print "      agent_id            agent            agentRecord  "
-        print "     agent_id    age    resources          resources  "
+        print(("Agent", "ID", "Alive?", "Resources", "Age"))
         for a in self.agent_list:
-            aRec = a.agent_record
-            age = aRec.max_lifetime - self.curT  ####  +/- 1   ??
-            print("%s  %.1f  %.1f %.1f" % (a.agent_id, age , a.resources, aRec.resources))
+            arec = a.agent_record
+            print((a, a.agent_id, a.is_alive, a.resources, arec.age))
 
+    def get_living_agents(self):
+        '''
+        Return only living agents.
+        '''
+        return [agent for agent in self.agent_list if agent.is_alive == True]
 
     def compute(self):
         '''
@@ -260,23 +262,27 @@ class World(object):
         if self.debug > 0:
             print (">>>Start step %d >>>" % (self.curT))
 
-        # get a bettr rng
+        # Shuffle agent order
         numpy.random.shuffle(self.agent_list)
 
         # the agent might ask to move or play
-        for a in self.agent_list:
+        for a in self.get_living_agents():
             # Run the agent step
             a.step()
+            arec = self.agent_records_dict[a.agent_id]
+            print((1, self.curT, a, a.agent_id, arec.age, a.resources))
 
         # Pay their bills
-        for a in self.agent_list:
+        for a in self.get_living_agents():
             arec = self.agent_records_dict[a.agent_id]
             a.resources = a.resources - arec.total_decrement_Per_Step
             arec.resources = arec.resources - arec.total_decrement_Per_Step
+            arec.age += 1
+            print((2, self.curT, a, a.agent_id, arec.age, a.resources))
 
         self.applyTheGrimReaper()
 
-        for a in self.agent_list:
+        for a in self.get_living_agents():
             if a.request_birth:
                 a.tryBirth()
 
@@ -314,15 +320,31 @@ class World(object):
         pass
 
 
-
-    def applyTheGrimReaper (self):
+    def applyTheGrimReaper(self):
         if self.debug > 0:
             print("++++++ applyThegrimReaper stp %d >>>" % (self.curT))
-            for a in self.agent_list:
-                if a.agent_record.max_lifetime < self.curT:
-                    print("%s should die at %d." % \
-                       (a, agent_id, a.agent_record.max_lifetime , self.curT))
 
+        '''
+        Iterate over agents and remove any who have passed their
+        or who have non-positive resources.
+        '''
+        for a in self.get_living_agents():
+            # Check if the agent has reached max lifetime
+            if self.agent_records_dict[a.agent_id].age >= self.agent_records_dict[a.agent_id].max_lifetime:  
+                if self.debug > 0:
+                    print("%s reached max lifetime %d at %d." % \
+                          (a, a.agent_record.max_lifetime,
+                           self.curT))
+                # Set to dead
+                a.is_alive = False
+
+            # Check if the agent has non-positive resources
+            if a.resources <= 0:
+                if self.debug > 0:
+                    print("%s starved at %d." % \
+                          (a, self.curT))
+                # Set to dead
+                a.is_alive = False
 
     def printStepSummary(self):
         '''
@@ -340,9 +362,6 @@ class World(object):
         '''
         if self.debug > 0:
             print ("       +++ printFinalStats %d >>>" % (self.curT))
-
-
-
 
 
     def __repr__(self):

@@ -41,7 +41,8 @@ class RioloAgentA(agents.Agent):
 
 
     def step(self):
-        print("%d step " % (self.agent_id))
+        pass
+        #print("%d step " % (self.agent_id))
 
 
 
