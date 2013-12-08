@@ -26,15 +26,14 @@ class Agent(object):
         self.agent_id = None
         self.x = 0
         self.y = 0
+        self.is_alive = True
         self.request_birth = False
 
         if world:
             self.resources = world.starting_resources
 
-
-    def send_agent_id (self):
-        return agent_id;
-
+    def send_agent_id(self):
+        return self.agent_id
 
     def tryBirth(self):
         print("%d tryBirth" % (self.agent_id))
@@ -42,10 +41,6 @@ class Agent(object):
 
     def step(self):
         print("%d step " % (self.agent_id))
-
-
-
-
 
     def __repr__(self):
         '''
