@@ -37,11 +37,11 @@ class RioloAgentA(agents.Agent):
 
 
     def tryBirth(self):
-        print("%d tryBirth" % ( self.agent_id  ) )
+        print("%d tryBirth" % (self.agent_id))
 
 
     def step(self):
-        print("%d step "  % ( self.agent_id  ) )
+        print("%d step " % (self.agent_id))
 
 
 

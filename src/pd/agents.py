@@ -32,16 +32,16 @@ class Agent(object):
             self.resources = world.starting_resources
 
 
-    def send_agent_id ( self ):
+    def send_agent_id (self):
         return agent_id;
 
 
     def tryBirth(self):
-        print("%d tryBirth" % ( self.agent_id  ) )
+        print("%d tryBirth" % (self.agent_id))
 
 
     def step(self):
-        print("%d step "  % ( self.agent_id  ) )
+        print("%d step " % (self.agent_id))
 
 
 

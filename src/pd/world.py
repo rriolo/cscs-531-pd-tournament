@@ -33,7 +33,7 @@ import agents
 import space
 
 
-class AgentRecord( object):
+class AgentRecord(object):
     '''
 the AgentRecord will keep trak  of
         * te agents current resource_level
@@ -49,11 +49,11 @@ the AgentRecord will keep trak  of
         self.world = world
         self.max_lifetime = 100
         self.name = agent_ptr.name
-        self.agent_id = "%16s-%09s" % (agent_ptr.name, self.world.next_ID )
+        self.agent_id = "%16s-%09s" % (agent_ptr.name, self.world.next_ID)
         self.world.next_ID += 1
         self.agent_ptr = agent_ptr
         self.die_step = self.world.curT + self.max_lifetime - 1
-        self.resources =  world.starting_resources
+        self.resources = world.starting_resources
 
         # fake srtuuff
         self.total_decrement_Per_Step = 2
@@ -92,7 +92,7 @@ class World(object):
 
 
 
-    def __init__(self, sysargv1 ):
+    def __init__(self, sysargv1):
         '''
         Constructor
         '''
@@ -127,7 +127,7 @@ class World(object):
         self.load_agents(self.agent_path)
 
         # Initialize space
-        self.space = None     # TBI
+        self.space = None  # TBI
 
 
 
@@ -162,7 +162,7 @@ class World(object):
             #
 
             else:
-                print  " Unknown name in arg='%s'name='%s' value='%s'\n" %\
+                print  " Unknown name in arg='%s'name='%s' value='%s'\n" % \
                     (arg, name, value)
                 help()
 
@@ -190,7 +190,7 @@ class World(object):
         '''
 
         if self.debug > 0:
-            print ("       +++ load_agents from %s >>>" %  ( self.agent_path ) )
+            print ("       +++ load_agents from %s >>>" % (self.agent_path))
 
         # Add path to the system path
         sys.path.append(agent_path)
@@ -210,7 +210,7 @@ class World(object):
             __import__(module_name, globals(), locals(), ['*'])
 
             if self.debug > 0:
-                print ("       +++  open %s >>>" %  ( module_name ) )
+                print ("       +++  open %s >>>" % (module_name))
 
             # Now iterate over module contents.
             for object_name in dir(sys.modules[module_name]):
@@ -226,7 +226,7 @@ class World(object):
                         object_instance.tournament = self
 
                         # create a record for it
-                        agrec = AgentRecord( object_instance, self)
+                        agrec = AgentRecord(object_instance, self)
                         object_instance.agent_record = agrec
                         self.agent_records_dict[ object_instance.agent_id ] = object_instance
 
@@ -237,13 +237,13 @@ class World(object):
 
 
 
-    def printAllAgents ( self ):
+    def printAllAgents (self):
         print "      agent_id            agent            agentRecord  "
         print "     agent_id    age    resources          resources  "
         for a in self.agent_list:
             aRec = a.agent_record
-            age = aRec.max_lifetime - self.curT      ####  +/- 1   ??
-            print( "%s  %.1f  %.1f %.1f" % (a.agent_id, age , a.resources, aRec.resources) )
+            age = aRec.max_lifetime - self.curT  ####  +/- 1   ??
+            print("%s  %.1f  %.1f %.1f" % (a.agent_id, age , a.resources, aRec.resources))
 
 
     def compute(self):
@@ -257,10 +257,10 @@ class World(object):
         then print out stats
         '''
         if self.debug > 0:
-            print (">>>Start step %d >>>" %  ( self.curT ) )
+            print (">>>Start step %d >>>" % (self.curT))
 
         # get a bettr rng
-        random.shuffle( self.agent_list )
+        random.shuffle(self.agent_list)
 
         # the agent might ask to move or play
         for a in self.agent_list:
@@ -284,21 +284,21 @@ class World(object):
             self.printStepSummary()
 
 
-    def requestMoveTo ( self, agent, destination_loc ):
+    def requestMoveTo (self, agent, destination_loc):
         '''
         agnt wants to move; chech that
         dest_loc us open and withibn agents range'
         if so, move and return true; if noyt return false
         '''
 
-        #TBA
+        # TBA
         # dist caj=lculatr
         # mover
 
         return False
 
 
-    def requestPlayPD ( self, requestor, other, play ):
+    def requestPlayPD (self, requestor, other, play):
         '''
         agent reqestor has picked an opponent and a play
          the world will ask that player fo a response, which is
@@ -313,13 +313,13 @@ class World(object):
 
 
 
-    def applyTheGrimReaper ( self ):
+    def applyTheGrimReaper (self):
         if self.debug > 0:
-            print("++++++ applyThegrimReaper stp %d >>>" %  ( self.curT ) )
+            print("++++++ applyThegrimReaper stp %d >>>" % (self.curT))
             for a in self.agent_list:
                 if a.agent_record.max_lifetime < self.curT:
                     print("%s should die at %d." % \
-                       (a,agent_id, a.agent_record.max_lifetime , self.curT ) )
+                       (a, agent_id, a.agent_record.max_lifetime , self.curT))
 
 
     def printStepSummary(self):
@@ -328,7 +328,7 @@ class World(object):
 
         '''
         if self.debug > 0:
-            print ("       +++ printStepSummary %d >>>" %  ( self.curT ) )
+            print ("       +++ printStepSummary %d >>>" % (self.curT))
 
 
     def printFinalStats(self):
@@ -337,7 +337,7 @@ class World(object):
 
         '''
         if self.debug > 0:
-            print ("       +++ printFinalStats %d >>>" %  ( self.curT ) )
+            print ("       +++ printFinalStats %d >>>" % (self.curT))
 
 
 
@@ -354,7 +354,7 @@ class World(object):
 ##############################################################333
 
 if __name__ == "__main__":
-    print  str( sys.argv )   # for cmd line parameters
+    print  str(sys.argv)  # for cmd line parameters
 
     # create world, which inits space, create agents agentrecords
     world = World (sys.argv[1:])

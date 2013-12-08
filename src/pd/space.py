@@ -92,7 +92,7 @@ class Lattice2D(object):
             # Iterate over columns
             for j in xrange(num_cols):
                 # Create our cell and add to row
-                cell = Cell((i,j))
+                cell = Cell((i, j))
                 row.append(cell)
                 
             self.space.append(row)
@@ -118,10 +118,10 @@ class Lattice2D(object):
         neighbor_positions = []
         
         # Get the positions
-        for i in xrange(-distance, distance+1):
-            for j in xrange(-distance, distance+1):
+        for i in xrange(-distance, distance + 1):
+            for j in xrange(-distance, distance + 1):
                 # Skip self
-                if i ==0 and j == 0:
+                if i == 0 and j == 0:
                     continue
                 
                 # Check boundaries
