@@ -262,6 +262,7 @@ class World(object):
         # get a bettr rng
         random.shuffle( self.agent_list )
 
+        # the agent might ask to move or play
         for a in self.agent_list:
             a.step()
 
@@ -281,6 +282,35 @@ class World(object):
             self.printAllAgents()
         elif self.verbose > 0:
             self.printStepSummary()
+
+
+    def requestMoveTo ( self, agent, destination_loc ):
+        '''
+        agnt wants to move; chech that
+        dest_loc us open and withibn agents range'
+        if so, move and return true; if noyt return false
+        '''
+
+        #TBA
+        # dist caj=lculatr
+        # mover
+
+        return False
+
+
+    def requestPlayPD ( self, requestor, other, play ):
+        '''
+        agent reqestor has picked an opponent and a play
+         the world will ask that player fo a response, which is
+         a) world.refuse
+         b) world.cooperate
+         c) world,defect
+         th world thy cals ho owes  or gains, tells both agbnts th results,
+         uodates ita agentrecord, chwcks uf wythwr euither is dead;
+
+         '''
+        pass
+
 
 
     def applyTheGrimReaper ( self ):
