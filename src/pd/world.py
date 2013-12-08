@@ -27,6 +27,7 @@ need
 import os
 import sys
 import random
+import numpy
 
 # Load our agents module
 import agents
@@ -228,7 +229,7 @@ class World(object):
                         # create a record for it
                         agrec = AgentRecord(object_instance, self)
                         object_instance.agent_record = agrec
-                        self.agent_records_dict[ object_instance.agent_id ] = object_instance
+                        self.agent_records_dict[object_instance.agent_id] = agrec
 
                         # Add to list
                         self.agent_list.append(object_instance)
@@ -260,17 +261,18 @@ class World(object):
             print (">>>Start step %d >>>" % (self.curT))
 
         # get a bettr rng
-        random.shuffle(self.agent_list)
+        numpy.random.shuffle(self.agent_list)
 
         # the agent might ask to move or play
         for a in self.agent_list:
+            # Run the agent step
             a.step()
 
-        # paty  their bills
+        # Pay their bills
         for a in self.agent_list:
-            arec = self.agent_records_dict[ a.agent_id ]
-#            a.resources =  a.resources - arec.total_decrement_Per_Step
-#            arec.resources = arec.resources -  arec.total_decrement_Per_Step
+            arec = self.agent_records_dict[a.agent_id]
+            a.resources = a.resources - arec.total_decrement_Per_Step
+            arec.resources = arec.resources - arec.total_decrement_Per_Step
 
         self.applyTheGrimReaper()
 
