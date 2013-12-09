@@ -123,7 +123,7 @@ class World(object):
         self.agent_list = []
         self.agent_records_dict = {}
         self.newborns = []
-
+        slf,game_history = {}  # dict key is tim step int. value ys liet of GameRecorda
         # Load agents
         # populate the agent_list, the agent_records_dict and
         # whatever "space" there is

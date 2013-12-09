@@ -30,8 +30,33 @@ class Agent(object):
 
 
 
+    def __init__(self, world=None):
+
+    def send_agent_id(self):
+        return self.agent_id
+
+    def step(self):
+        teplevel of agents initiated action per step
+        must choose acion,, play pd or move
+      def choose_action( self ):
+
+    def choose_reply( self, requestor ):
+       somebody offered oplay-you chooseplay or rufeuse
+
+    def tryBirth(self)
+   mut have birththres resouces, and there must be n empty cell
+    in your dispersal range
+     if you meetcriteria you sebd a rfb - request fur bith mess to tworld;
+    the msg inludes a capabiliytyDict which is assugns to te cpbiliti ivar
+   in the offsping, keys are capab names
+     "vision"   "speed"   "dispeal"   and values are the requwestws cap,
+     the world use that ti calg charge oerstep,
+
+   and the birth threshhol whuch is sum(operstepchsrges) * birthnultiplier z9 3 )
 
 
+
+more TBA
     '''
 
     # World context; agent needs to know this to ask about its surroundings.
@@ -67,6 +92,12 @@ class Agent(object):
 
         if world:
             self.resources = world.starting_resources
+        self.agentCapabiitiesDict = {}
+        self.birthThreshold
+        ##
+        # more TBA
+        #
+
 
     def send_agent_id(self):
         return self.agent_id
@@ -80,6 +111,7 @@ class Agent(object):
          a) world.refuse
          b) world.cooperate
          c) world,defect
+
 
          this is a simple pure strategy player
 
