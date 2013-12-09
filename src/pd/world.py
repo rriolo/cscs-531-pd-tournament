@@ -93,7 +93,10 @@ class World(object):
     # Space
     space = None
 
-
+    # Player response enum
+    refuse = 0
+    cooperate = 1
+    defect = 2
 
     def __init__(self, sysargv1):
         '''
@@ -131,7 +134,8 @@ class World(object):
 
         # Initialize space
         self.space = None  # TBI
-
+        self.per_distance_offspring_cost = 1
+        self.per_sight_offspring_cost = 1
 
 
     def processCmdLineArgs(self, args):
@@ -327,14 +331,16 @@ class World(object):
          return GameRecord or None
          '''
 
-
         # check if other in range and alive'
+        # Skip for now
+        ineligible = False
         if ineligible:
             return None
 
-        others_play  = other.chooseReply( requestor )
+        # Get opponents play
+        others_play = other.chooseReply(requestor)
 
-        if others_play = world.refuse:
+        if others_play == World.refuse:
             # update resources -- **RR
             grec = GameRecord(  requestor, other, grec, world.refuse )
 
@@ -347,7 +353,6 @@ class World(object):
 1            # play the and get score
             grec = GameRecord(  requestor, other, grec, none )
 
-
         # in either case record and return ptr to other
         self.add_to_history( grec)
         return other
@@ -355,14 +360,8 @@ class World(object):
 
     def requestMove ( self, who,,where );
     '''
-
-
-
-
-
-
     '''
-    pass
+        pass
 
 
     def applyTheGrimReaper(self):
@@ -379,10 +378,6 @@ class World(object):
                 if self.debug > 0:
                     arec = a.agent_record
                     print("%s reached max age %d at max lifetime (curT) at %d." \
-
-
-
- \
                           (a, arec.max_age, arec.max_lifetime))
                 # Set to dead
                 a.is_alive = False
@@ -424,6 +419,12 @@ class World(object):
         if self.debug > 0:
             print ("       +++ printFinalStats %d >>>" % (self.curT))
 
+    def get_cost_of_offspring(self, resources, sight_value, distance_value):
+        '''
+        Get the cost of an offspring with a given set of resources.
+        '''
+        return resources + sight_value * self.per_sight_offspring_cost \
+            + distance_value * self.per_distance_offspring_cost
 
     def __repr__(self):
         '''
