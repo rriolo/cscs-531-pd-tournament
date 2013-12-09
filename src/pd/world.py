@@ -280,6 +280,8 @@ class World(object):
                 except Exception, E:
                     pass
 
+
+
     def printAllAgents (self):
         print(("Agent", "ID", "Alive?", "Resources", "Age"))
         for a in self.agent_list:
@@ -306,8 +308,8 @@ class World(object):
             print (">>>Start step %d >>>" % (self.curT))
 
         # upgdate history books
-        game_histories[ self.curT ] = []
-        cur_game_history = game_histories[ self.curT ]
+        self.game_histories[ self.curT ] = []
+        self.cur_game_history = self.game_histories[ self.curT ]
 
         # Shuffle agent order
         numpy.random.shuffle(self.agent_list)
@@ -349,8 +351,24 @@ class World(object):
         # TBA
         # dist caj=lculatr
         # mover
-
+        # create game rec and add to history
         return False
+
+
+    def pickRandomOther ( self, me ):
+        '''
+        from all agents pickone at random, buut not me.
+        '''
+        if len( self.agent_list ) < 2 :
+            print "cabnt rrun wit 1 or fewer adebnts"
+            exit
+
+        pick = me
+        while pick == me:
+            r = random.randrange( len(self.agent_list) )
+            pick =  self.agent_list[r]
+        return pick
+
 
 
     def requestPlayPD (self, requestor, other, focals_play):

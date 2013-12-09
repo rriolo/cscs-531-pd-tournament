@@ -99,6 +99,7 @@ more TBA
         #
 
 
+
     def send_agent_id(self):
         return self.agent_id
 
@@ -113,16 +114,16 @@ more TBA
          c) world,defect
 
 
-         this is a simple pure strategy player
+        this is a simple pure strategy player
 
-         '''
+        '''
         return world.cooperate
 
 
 
     def choose_action( self ):
-       '''
-        yiur etep, so yhou have t o do
+        '''
+        your step, so yhou have t o do
            you have to rpely 1 of 3 choices'
 
            the world will ask that player fo a response, which is
@@ -132,7 +133,7 @@ more TBA
 
          this is a simple pure strategy player
 
-         '''
+        '''
         return world.cooperate
 
 
@@ -143,25 +144,26 @@ more TBA
 
     def step(self):
         '''
-         choose]\  an acrion  to request., ie moce orplay pd.
-         normalllyh fogure ou t waht is good opipn
-
-         this ;particlre agernt shooses pd 50%, 505 pfd
-         c=before lokin at whjat is leagl
+         first choose  an action  to request., ie move or play the pd.
+         some agents may loook at thr ooponents history, or
+         at thrir own witution. others might play a "pure" dtrategy               or a random one.
+         this ;particular agent shooses pd 50%, 50% move
+         *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
         '''
-        print("%d step " % (self.agent_id))
+        print("Ag .%d step " % (self.agent_id))
 
 
-        if  randmom.random 0.5:
+        if  randmom.random() < 0.5:
              # play pd
-            # pick ran oppdo
-            other = a rqandomly vhoodrn fro th vis Koponne
-            play = cooopt
-            requestPlayPD (self, requestor, other, play):
+            # or now, pick ran oppdo
+            other = world.pickRandomOther( self )
+            play = World.cooperate
+            grec = requestPlayPD ( self, other, play)
 
         else:
             # see if theere is  randomly chosesn place to momve
-            requestMove ( self , there )
+            there = None
+            requestMoveto ( self , there )
 
 
 
