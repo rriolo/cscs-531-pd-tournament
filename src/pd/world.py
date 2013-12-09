@@ -40,7 +40,7 @@ the AgentRecord will keep trak  of
         * te agents current resource_level
         * the agevts caoabities (max speed, etc
         *  the agents total_decrement_per_step
-        * die_step
+        * max_lifetime (die_step)
         * a pointer to the agent object
         * step_status (eg so it cant moce twicw un  inw step
 
@@ -48,13 +48,14 @@ the AgentRecord will keep trak  of
     # World context; agent needs to know this to ask about its surroundings.
     def __init__(self, agent_ptr, world):
         self.world = world
-        self.max_lifetime = 100
+        self.max_age = 100
+        self.max_lifetime = world.curT + self.max_age
         self.name = agent_ptr.name
         self.agent_id = "%16s-%09s" % (agent_ptr.name, self.world.next_ID)
         self.world.next_ID += 1
         self.agent_ptr = agent_ptr
-        self.die_step = self.world.curT + self.max_lifetime - 1
-        self.age = 0
+        #self.die_step = self.world.curT + self.max_lifetime - 1
+        #self.age = 0
         self.resources = world.starting_resources
 
         # fake srtuuff
@@ -228,10 +229,18 @@ class World(object):
                         object_instance.tournament = self
 
                         # create a record for it
-                        agrec = AgentRecord(object_instance, self)
+                        try:
+                            agrec = AgentRecord(object_instance, self)
+                        except Exception, E:
+                            print E
                         object_instance.agent_record = agrec
-                        self.agent_records_dict[object_instance.agent_id] = agrec
-
+                        print "created agrec "
+                        try:
+                            self.agent_records_dict[object_instance.agent_id] = agrec
+                        except Exception, E:
+                            print E
+                        print( "max_age %d  max_lifetime %d (curT %d)" % \
+                            agrec.max_age, agrec.max_lifetime, self.curT )
                         # Add to list
                         self.agent_list.append(object_instance)
                 except Exception, E:
@@ -313,11 +322,47 @@ class World(object):
          a) world.refuse
          b) world.cooperate
          c) world,defect
-         th world thy cals ho owes  or gains, tells both agbnts th results,
-         uodates ita agentrecord, chwcks uf wythwr euither is dead;
-
+         the world then calcs who owes  or gains, tells both agbnts th results,
+         uodates ita agentrecord, checks if either s dead;
+         return GameRecord or None
          '''
-        pass
+
+
+        # check if other in range and alive'
+        if ineligible:
+            return None
+
+        others_play  = other.chooseReply( requestor )
+
+        if others_play = world.refuse:
+            # update resources -- **RR
+            grec = GameRecord(  requestor, other, grec, world.refuse )
+
+        else:
+            # else oher replie d with coop or ddefect...
+            # requestir has to choose...'
+            #
+            focals_play = requetsor.choose_action( other )
+
+1            # play the and get score
+            grec = GameRecord(  requestor, other, grec, none )
+
+
+        # in either case record and return ptr to other
+        self.add_to_history( grec)
+        return other
+
+
+    def requestMove ( self, who,,where );
+    '''
+
+
+
+
+
+
+    '''
+    pass
 
 
     def applyTheGrimReaper(self):
@@ -328,13 +373,17 @@ class World(object):
         Iterate over agents and remove any who have passed their
         or who have non-positive resources.
         '''
-        for a in self.get_living_agents():
+        for a in  self.get_living_agents():   #.reverse():
             # Check if the agent has reached max lifetime
-            if self.agent_records_dict[a.agent_id].age >= self.agent_records_dict[a.agent_id].max_lifetime:  
+            if self.curT == self.agent_records_dict[a.agent_id].max_lifetime:
                 if self.debug > 0:
-                    print("%s reached max lifetime %d at %d." % \
-                          (a, a.agent_record.max_lifetime,
-                           self.curT))
+                    arec = a.agent_record
+                    print("%s reached max age %d at max lifetime (curT) at %d." \
+
+
+
+ \
+                          (a, arec.max_age, arec.max_lifetime))
                 # Set to dead
                 a.is_alive = False
 
@@ -345,6 +394,18 @@ class World(object):
                           (a, self.curT))
                 # Set to dead
                 a.is_alive = False
+
+
+
+
+        '''
+        a who aske d to mmve there
+        od the checks
+
+        '''
+        pass
+
+
 
     def printStepSummary(self):
         '''
