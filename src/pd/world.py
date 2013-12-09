@@ -34,6 +34,34 @@ import agents
 import space
 
 
+
+
+############################################################
+
+class GameRecord( object ):
+    '''
+    Record what happ]ens for every step() message executed
+    focal = ptr agent executing thr step
+    action = wha foval choose to do: 'world.move' = move , eorlf.pd
+    move = for M acion, disance mmoved
+          for P. world.eefuse,cooperate. defect
+     result  = sc]ore  in pd, dist moved, or refused payoff, or None
+     othrer = ptr to oth er agent
+
+
+these are added to curGameRecorList, whihx xhanges at start of tuime steop,
+  the  lists are in  the game_histories dict, keyed by curT whenplayed
+    '''
+    def __init__( focal, action, rmv, omv, result , other ):
+        self.focal = focal
+        self.action = action
+        self.requestor_move  = rmv
+        self.other_move = omv
+        self.other = other
+        self.result = result
+
+#########################################################
+
 class AgentRecord(object):
     '''
 the AgentRecord will keep trak  of
@@ -93,10 +121,12 @@ class World(object):
     # Space
     space = None
 
-    # Player response enum
+    # Player response and gneeral enum
     refuse = 0
     cooperate = 1
     defect = 2
+    pd   = 3
+    move = 4
 
     def __init__(self, sysargv1):
         '''
@@ -126,7 +156,7 @@ class World(object):
         self.agent_list = []
         self.agent_records_dict = {}
         self.newborns = []
-        slf,game_history = {}  # dict key is tim step int. value ys liet of GameRecorda
+        self.game_histories = {}  # dict key is tim step int. value ys liet of GameRecorda
         # Load agents
         # populate the agent_list, the agent_records_dict and
         # whatever "space" there is
@@ -275,6 +305,10 @@ class World(object):
         if self.debug > 0:
             print (">>>Start step %d >>>" % (self.curT))
 
+        # upgdate history books
+        game_histories[ self.curT ] = []
+        cur_game_history = game_histories[ self.curT ]
+
         # Shuffle agent order
         numpy.random.shuffle(self.agent_list)
 
@@ -319,7 +353,7 @@ class World(object):
         return False
 
 
-    def requestPlayPD (self, requestor, other, play):
+    def requestPlayPD (self, requestor, other, focals_play):
         '''
         agent reqestor has picked an opponent and a play
          the world will ask that player fo a response, which is
@@ -342,26 +376,29 @@ class World(object):
 
         if others_play == World.refuse:
             # update resources -- **RR
-            grec = GameRecord(  requestor, other, grec, world.refuse )
+            grec = GameRecord(  requestor, World.pd, play,\
+                                    World.refuse, self.refusal_charge, other )
 
         else:
-            # else oher replie d with coop or ddefect...
-            # requestir has to choose...'
-            #
-            focals_play = requetsor.choose_action( other )
+            # theyboth chose to play
 
-1            # play the and get score
-            grec = GameRecord(  requestor, other, grec, none )
+            # play the and get score
+            focals_payoff = 3                               # **RR sTUB **
+
+            # record the ganme
+            grec = GameRecord(  requestor, World.pd, focals_play,\
+                                    others_play, focals_payoff, other )
 
         # in either case record and return ptr to other
         self.add_to_history( grec)
         return other
 
 
-    def requestMove ( self, who,,where );
-    '''
-    '''
-        pass
+
+    def add_to_history ( self, grec ):
+        cur_game_history.append (grec)
+
+
 
 
     def applyTheGrimReaper(self):
