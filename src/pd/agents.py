@@ -11,6 +11,27 @@ class Agent(object):
 
     The Agent class defines a shared set of methods and variables
     that the World needs to assume are available to "run."
+
+    this class, taken a a specific example,  implements agents sumilsr to
+    the agent in the zones of coop papder,, ]eg,
+   a. the play pure c or D stratagies, and dont refusw
+   b. they akk haave the same cpbilitgies, ie, max visionrange , smax
+   speed and ffospring msx of 1.
+   c. hey live in a 30x30 torus , 0 or 1 agent per cell.
+
+    one difference is you can change some of the capabikties, eg,
+    by changing the agent step method, you can make your
+    agnts arbiraily  complicated stratigies,   the also can see father,
+    go faster and disperse ooffspring farther, but at a cost.
+
+     here is a list of mthods the agents must make available[
+     fioollowed by a list of methods they must provide,
+      the variables iyt nakes available in the __init__ method.
+
+
+
+
+
     '''
 
     # World context; agent needs to know this to ask about its surroundings.
