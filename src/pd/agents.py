@@ -89,7 +89,7 @@ more TBA
         self.y = 0
         self.is_alive = True
         self.request_birth = False
-
+        self.agent_record = None
         if world:
             self.resources = world.starting_resources
         self.agentCapabiitiesDict = {}
@@ -97,6 +97,10 @@ more TBA
         ##
         # more TBA
         #
+
+    def printAgent ( self ):
+        arec = self.agent_record
+        print((self, self.agent_id, self.is_alive, self.resources, arec.age))
 
 
 

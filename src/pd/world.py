@@ -79,8 +79,10 @@ the AgentRecord will keep trak  of
         self.max_age = 100
         self.max_lifetime = world.curT + self.max_age
         self.name = agent_ptr.name
-        self.agent_id = "%16s-%09s" % (agent_ptr.name, self.world.next_ID)
-        self.world.next_ID += 1
+        s ="%16s-%09d" % (agent_ptr.name, World.next_ID)
+        print "aid >%s<" % ( s )
+        self.agent_id = s
+        World.next_ID += 1
         self.agent_ptr = agent_ptr
         #self.die_step = self.world.curT + self.max_lifetime - 1
         #self.age = 0
@@ -238,29 +240,36 @@ class World(object):
             if not file_name.lower().endswith('.py'):
                 continue
 
-
-
-            # Get module name
             module_name = os.path.basename(file_name).replace(".py", "")
-
+            print("pr module name >%s<  filename >%s<" % (module_name, file_name) )
             # Import the module
             __import__(module_name, globals(), locals(), ['*'])
+
+            print("done module name >%s<  filename >%s<" % (module_name, file_name) )
+
 
             if self.debug > 0:
                 print ("       +++  open %s >>>" % (module_name))
 
             # Now iterate over module contents.
             for object_name in dir(sys.modules[module_name]):
+                print "object_name >%s< " % ( object_name )
+                if object_name == "numpy":
+                    print "skipping  nympy..."
+                    break
                 object_value = getattr(sys.modules[module_name], object_name)
+                print "objectr valuie"
+                #print object_value
                 try:
                     # Instantiate.
+                    print "try to instantiate..."
                     object_instance = object_value(self)
+                    print object_instance
+                    print "--> instance {0} ".format ( object_instance )
                     # If the variable matches the Player class type, include.
                     if isinstance(object_instance,
                                   agents.Agent):
                         print("Adding " + object_name)
-                        # Set ourself as the tournament
-                        object_instance.tournament = self
 
                         # create a record for it
                         try:
@@ -268,7 +277,13 @@ class World(object):
                         except Exception, E:
                             print E
                         object_instance.agent_record = agrec
-                        print "created agrec "
+                        object_instance.agent_id = agrec.agent_id
+
+                        print "created agrec aid >%s< for agid >%s< " %\
+                            ( agrec.agent_id, object_instance.agent_id  )
+                        self.agent_list.append(object_instance)
+                        print "%d on agent_list" % ( len( self.agent_list))
+
                         try:
                             self.agent_records_dict[object_instance.agent_id] = agrec
                         except Exception, E:
@@ -277,6 +292,7 @@ class World(object):
                             agrec.max_age, agrec.max_lifetime, self.curT )
                         # Add to list
                         self.agent_list.append(object_instance)
+                        print "%d on agent_list" % ( len( self.agent_list))
                 except Exception, E:
                     pass
 
@@ -286,7 +302,9 @@ class World(object):
         print(("Agent", "ID", "Alive?", "Resources", "Age"))
         for a in self.agent_list:
             arec = a.agent_record
-            print((a, a.agent_id, a.is_alive, a.resources, arec.age))
+            age = arec.max_lifetime - self.curT
+            ###nt((a, a.agent_id, a.is_alive, a.resources, age))
+            print((a, a.agent_id,            a.resources, age))
 
     def get_living_agents(self):
         '''

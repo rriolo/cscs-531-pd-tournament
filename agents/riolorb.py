@@ -24,15 +24,24 @@ class RioloAgentB(agents.Agent):
         '''
         Constructor, which initializes our agent.
         '''
-        super(RioloAgentB, self).__init__(world=world)
         # Set the name and world
         self.name = "RioloB"
         self.world = world
-        self.agent_id = 1
-        self.resources = world.starting_resources
+        self.agent_id = None
+        # prob want space here too   **RR
         self.x = 0
         self.y = 0
+        self.is_alive = True
         self.request_birth = False
+        self.agent_record = None
+        if world:
+            self.resources = world.starting_resources
+        self.agentCapabiitiesDict = {}
+        self.birthThreshold
+        ##
+        # more TBA
+        #rr super(RioloAgentB, self).__init__(world=world)
+
 
 
     def tryBirth(self):
