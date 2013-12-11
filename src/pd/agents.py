@@ -4,6 +4,8 @@
 '''
 import world
 import random
+import agents
+from world import *
 
 
 class Agent(object):
@@ -152,11 +154,28 @@ more TBA
 
 
     def tryBirth(self):
-        print("%s tryBirth" % (self.agent_id))
+        print("%s tryBirth: resources %1f  threw %.1f" %\
+                  (self.agent_id, self.resources, self.birthThreshold))
+        # checjk for open spae
+        ag = agents.Agent( self.world )
+        # we wabt nam t o be  p
 
+
+        ag.name =  self.name
+        agrec = AgentRecord(ag, self.world )
+        ag.agent_record = agrec
+        ag.agent_id = agrec.agent_id
+        ag.resources = ag.birthThreshold
+        self.resources =- ag.resources
+        print "************************ created agrec aid >%s< for agid >%s< " %\
+            ( agrec.agent_id, ag.agent_id  )
+        print "offsp of %s  %s" % (  self.name  , self.agent_id)
+        world.agent_list.append( ag )
+        print "%d on agent_list" % ( len(world.agent_list))
+        world.agent_records_dict[ag.agent_id] = agrec
+        world.births  += 1
 
         #self.mutated  += 0
-        #self.births  += 1
 
 
     def step(self):

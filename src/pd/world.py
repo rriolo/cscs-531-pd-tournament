@@ -82,7 +82,7 @@ the AgentRecord will keep trak  of
         self.max_age = 100
         self.max_lifetime = world.curT + self.max_age
         self.name = agent_ptr.name
-        s ="%s-%03d" % (agent_ptr.name, World.next_ID)
+        s ="%s-%03d-%03d" % (agent_ptr.name, world.curT,World.next_ID)
         print "aid >%s<" % ( s )
         self.agent_id = s
         World.next_ID += 1
@@ -169,6 +169,8 @@ class World(object):
         self.agent_records_dict = {}
         self.newborns = []
         self.game_histories = {}  # dict key is tim step int. value ys liet of GameRecorda
+        self.agent_types_dict = {}
+
         self.num_created_agents = 4
 
         # stats
@@ -399,17 +401,23 @@ class World(object):
         for a in self.get_living_agents():
             # Run the agent step
             a.step()
+            print ((a, a.agent_record, type( a.agent_record)))
             arec = self.agent_records_dict[a.agent_id]
             age = self.curT - arec.time_born
             print((1, self.curT, a, a.agent_id, age, a.resources))
 
-        # Pay their bills
+        print "# Pay their bills"
         for a in self.get_living_agents():
-            amt = - a.agent_record.total_decrement_Per_Step
+            agrec = a.agent_record
+            print(( a, a.agent_record, type (agrec) ))
+            amt = - (agrec.total_decrement_Per_Step)
             self.update_resources( a,  amt )
             age = self.curT - arec.time_born
             print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
-
+            if a.resources > a.birthThreshold:
+                a.request_birth = True
+            else:
+                a.request_birth = False
 
         self.applyTheGrimReaper()
 
@@ -428,8 +436,8 @@ class World(object):
          amt is already pos or neg as need be
         '''
         a.resources = a.resources + amt
-        arec = a.agent_record
-        arec.resources = arec.resources + amt
+        agrec = a.agent_record
+        agrec.resources = agrec.resources + amt
 
 
 
@@ -575,18 +583,44 @@ class World(object):
                     a.max_lifetime = self.max_lifetime
                 else:
                     # renmove from akk lists an dicts
-                    print "%s is being removed..."
+                    print "%s is being removed..." % ( a )
                     del self.agent_records_dict[ a.agent_id ]
 
                     self.agent_list.remove( a )
 
 
-    def countTypes ( self ):
+    def count_types ( self ):
         '''
+        coujn t numer of speciers, feddefunred as agents wth sne nbhe
+        'keep a dict, key is name
+        '''
+        tot_resources = 0
+        tot = 0
+        agent_amts_dict = {}
+        agent_types_dict = {}
+        for a in self.agent_list:
+            name = a.name
+            tot += 1
+            tot_resources += a.resources
+            if agent_types_dict.has_key( name  ):
+                # we  tab going,,,]
+                agent_types_dict[ name ] += 1
+                agent_amts_dict[ name ] += a.resources
+            else:
+                agent_types_dict[ name ] = 1
+                agent_amts_dict[ name ] = a.resources
 
 
-        '''
-        pass
+        print " type  cnt   tot4type  avg/type"
+        for a  in self.agent_list:
+            name = a.name
+            if agent_types_dict[ name ]  > 1 :
+                avg = agent_amts_dict[ name ] / float (agent_types_dict[ name ] )
+            else:
+                avg = agent_amts_dict[ name ]
+            print " %s   %d   %.3f  %.4f "  %\
+                    ( name, agent_types_dict[ name ], agent_amts_dict[ name ], avg )
+
 
 
 
@@ -653,12 +687,15 @@ if __name__ == "__main__":
 
     while  world.curT < world.stopT:
         world.compute()
+        world.count_types()
         if len( world.agent_list ) == 0 :
             print " all agents dead"
             break
         world.curT += 1
 
     print("\nFinal scores:")
+    world.count_types()
+
     world.printAllAgents()
 
     print("All done.")
