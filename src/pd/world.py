@@ -52,13 +52,14 @@ class GameRecord( object ):
 these are added to curGameRecorList, whihx xhanges at start of tuime steop,
   the  lists are in  the game_histories dict, keyed by curT whenplayed
     '''
-    def __init__( focal, action, rmv, omv, result , other ):
+    def __init__( self, focal, action, rmv, omv, fresult , oresult, other ):
         self.focal = focal
         self.action = action
         self.requestor_move  = rmv
         self.other_move = omv
         self.other = other
-        self.result = result
+        self.focals_result = fresult
+        self.other_result = oresult
 
 #########################################################
 
@@ -76,10 +77,12 @@ the AgentRecord will keep trak  of
     # World context; agent needs to know this to ask about its surroundings.
     def __init__(self, agent_ptr, world):
         self.world = world
+
+        self.time_born = self.world.curT
         self.max_age = 100
         self.max_lifetime = world.curT + self.max_age
         self.name = agent_ptr.name
-        s ="%16s-%09d" % (agent_ptr.name, World.next_ID)
+        s ="%s-%03d" % (agent_ptr.name, World.next_ID)
         print "aid >%s<" % ( s )
         self.agent_id = s
         World.next_ID += 1
@@ -124,11 +127,18 @@ class World(object):
     space = None
 
     # Player response and gneeral enum
-    refuse = 0
-    cooperate = 1
-    defect = 2
+    refuse = 2
+    cooperate = 0
+    defect = 1
     pd   = 3
     move = 4
+    payoff_matrix = [[(3, 3), (0, 5)],
+                    [(5, 0), (1, 1)]]
+
+
+    def playPD ( self, move1 , move2 ):
+        pay1, pay2 = world.payoff_matrix[move1][move2]
+        return pay1, pay2
 
     def __init__(self, sysargv1):
         '''
@@ -137,7 +147,7 @@ class World(object):
         # Set parameters defaolts
         self.agent_path = "agents/"
         self.stopT = 150
-        self.worldSize = 40
+        self.worldSize = 30
         self.costPerTbaseResMetabol = 3
         self.costPerCellVisRange = 1
         self.costPerUnitSpeed = 1
@@ -147,9 +157,9 @@ class World(object):
         self.payoff_multiplier = 2
         self.debug = 0
         self.verbose = 0
-
+        self.rebirth_prob = 0.0
         self.starting_resources = 21
-
+        self.refusal_cost = 3
 
         # puts vak=ls from runcmd line in self-vars
         self.processCmdLineArgs(sysargv1)
@@ -159,10 +169,29 @@ class World(object):
         self.agent_records_dict = {}
         self.newborns = []
         self.game_histories = {}  # dict key is tim step int. value ys liet of GameRecorda
+        self.num_created_agents = 4
+
+        # stats
+        self.totnumMove  = 0
+        self.totnumofferpd = 0
+        self.totnumrefuse  = 0
+        self.totnumdef  = 0
+        self.totnumcoop  =0
+        self.totnumstarved = 0
+        self.totnumold = 0
+        self.births  = 0
+        self.mutated  = 0
+
+
         # Load agents
         # populate the agent_list, the agent_records_dict and
-        # whatever "space" there is
-        self.load_agents(self.agent_path)
+        # whatever "space" there is with agents in *py files
+        # in the agent_path. if agent_path  is "", create copies
+        # of the base src/pd/agents.py class.
+        if self.agent_path != "":
+            self.load_agents(self.agent_path)
+        else:
+            self.create_initial_agents(self)
 
         # Initialize space
         self.space = None  # TBI
@@ -194,8 +223,12 @@ class World(object):
                     self.debug = int(value)
             elif name == 'max_lifetime' or name == 'mlt':
                 self.max_lifeime = int(value)
+            elif name == 'rbp':
+                self.rebirth_prob = float(value)
             elif name == 'starting_resources' or name == 'sr':
                 self.starting_resources = int(value)
+            elif name == 'num_created_agents' or name == 'nca':
+                self.num_created_agents = int(value)
             #
             # FILL In THE RESt
             #
@@ -297,20 +330,50 @@ class World(object):
                     pass
 
 
+    def create_initial_agents (self, world ):
+        '''
+        if not loadagents via agents_path, create agents.
+        by deafualt it wil ttry o create copies of the class
+        Created_Agents and or agents.Agent the baseclass.
+
+        '''
+
+
+        print "create_initial_agents "
+
+
+        for i   in range( self.num_created_agents ):
+            ag = agents.Agent( self )
+            ag.name = "X%d"%( i )
+            agrec = AgentRecord(ag, self)
+            ag.agent_record = agrec
+            ag.agent_id = agrec.agent_id
+            print "created agrec aid >%s< for agid >%s< " %\
+                ( agrec.agent_id, ag.agent_id  )
+            self.agent_list.append( ag )
+            print "%d on agent_list" % ( len( self.agent_list))
+            self.agent_records_dict[ag.agent_id] = agrec
+
+
+
 
     def printAllAgents (self):
         print(("Agent", "ID", "Alive?", "Resources", "Age"))
         for a in self.agent_list:
             arec = a.agent_record
-            age = arec.max_lifetime - self.curT
-            ###nt((a, a.agent_id, a.is_alive, a.resources, age))
-            print((a, a.agent_id,            a.resources, age))
+            age = self.curT - arec.time_born
+            print((a, a.agent_id, a.is_alive, a.resources, age))
 
     def get_living_agents(self):
         '''
         Return only living agents.
         '''
         return [agent for agent in self.agent_list if agent.is_alive == True]
+
+
+
+
+
 
     def compute(self):
         '''
@@ -337,15 +400,16 @@ class World(object):
             # Run the agent step
             a.step()
             arec = self.agent_records_dict[a.agent_id]
-            print((1, self.curT, a, a.agent_id, arec.age, a.resources))
+            age = self.curT - arec.time_born
+            print((1, self.curT, a, a.agent_id, age, a.resources))
 
         # Pay their bills
         for a in self.get_living_agents():
-            arec = self.agent_records_dict[a.agent_id]
-            a.resources = a.resources - arec.total_decrement_Per_Step
-            arec.resources = arec.resources - arec.total_decrement_Per_Step
-            arec.age += 1
-            print((2, self.curT, a, a.agent_id, arec.age, a.resources))
+            amt = - a.agent_record.total_decrement_Per_Step
+            self.update_resources( a,  amt )
+            age = self.curT - arec.time_born
+            print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
+
 
         self.applyTheGrimReaper()
 
@@ -359,12 +423,26 @@ class World(object):
             self.printStepSummary()
 
 
+    def update_resources ( self, a, amt ):
+        '''
+         amt is already pos or neg as need be
+        '''
+        a.resources = a.resources + amt
+        arec = a.agent_record
+        arec.resources = arec.resources + amt
+
+
+
+
+
     def requestMoveTo (self, agent, destination_loc):
         '''
         agnt wants to move; chech that
         dest_loc us open and withibn agents range'
         if so, move and return true; if noyt return false
         '''
+
+        self.totnumMove  += 1
 
         # TBA
         # dist caj=lculatr
@@ -401,6 +479,8 @@ class World(object):
          return GameRecord or None
          '''
 
+        self.totnumofferpd += 1
+
         # check if other in range and alive'
         # Skip for now
         ineligible = False
@@ -408,22 +488,44 @@ class World(object):
             return None
 
         # Get opponents play
-        others_play = other.chooseReply(requestor)
+        others_play = other.choose_reply(requestor)
 
         if others_play == World.refuse:
-            # update resources -- **RR
-            grec = GameRecord(  requestor, World.pd, play,\
-                                    World.refuse, self.refusal_charge, other )
+            # update resources
+            self.totnumrefuse  += 1
+            amt = self.refusal_cost
+            self.update_resources( requestor,  amt )
+            self.update_resources( other,  -amt )
+            print "Chose to refuse,,,"
+            grec = GameRecord( requestor, World.pd, focals_play,\
+                            others_play, amt, -amt, other )
+
+
 
         else:
             # theyboth chose to play
+            focals_payoff, others_payoff = self.playPD ( focals_play, others_play )
+            self.update_resources( requestor,  focals_payoff )
+            self.update_resources( other,  others_payoff )
+            print ("req  %s %d  pay %.2f  other  %s  %d pay %.2f ") % \
+                ( requestor.agent_id, focals_play, focals_payoff, \
+                  other.agent_id,  others_play, others_payoff )
 
-            # play the and get score
-            focals_payoff = 3                               # **RR sTUB **
+            if focals_play == world.cooperate:
+                self.totnumcoop += 1
+            else:
+                self.totnumdef  += 1
+
+            if others_play == world.cooperate:
+                self.totnumcoop += 1
+            else:
+                self.totnumdef  += 1
+
 
             # record the ganme
-            grec = GameRecord(  requestor, World.pd, focals_play,\
-                                    others_play, focals_payoff, other )
+            grec = GameRecord(requestor, World.pd, focals_play,\
+                              others_play, focals_payoff,\
+                              others_payoff,    other )
 
         # in either case record and return ptr to other
         self.add_to_history( grec)
@@ -432,7 +534,7 @@ class World(object):
 
 
     def add_to_history ( self, grec ):
-        cur_game_history.append (grec)
+        self.cur_game_history.append (grec)
 
 
 
@@ -447,28 +549,41 @@ class World(object):
         '''
         for a in  self.get_living_agents():   #.reverse():
             # Check if the agent has reached max lifetime
-            if self.curT == self.agent_records_dict[a.agent_id].max_lifetime:
+            if self.curT  >= self.agent_records_dict[a.agent_id].max_lifetime:
                 if self.debug > 0:
                     arec = a.agent_record
                     print("%s reached max age %d at max lifetime (curT) at %d." \
                           (a, arec.max_age, arec.max_lifetime))
                 # Set to dead
                 a.is_alive = False
+                self.totnumold  += 1
+
 
             # Check if the agent has non-positive resources
             if a.resources <= 0:
                 if self.debug > 0:
-                    print("%s starved at %d." % \
+                    print("============>]>>>>> %s starved at %d." % \
                           (a, self.curT))
                 # Set to dead
                 a.is_alive = False
+                self.totnumstarved += 1
+
+        for  a in self.agent_list:
+           if not a.is_alive :
+                if random.random() < self.rebirth_prob :
+                    a.resources = world.starting_resources
+                    a.max_lifetime = self.max_lifetime
+                else:
+                    # renmove from akk lists an dicts
+                    print "%s is being removed..."
+                    del self.agent_records_dict[ a.agent_id ]
+
+                    self.agent_list.remove( a )
 
 
-
-
+    def countTypes ( self ):
         '''
-        a who aske d to mmve there
-        od the checks
+
 
         '''
         pass
@@ -491,6 +606,22 @@ class World(object):
         '''
         if self.debug > 0:
             print ("       +++ printFinalStats %d >>>" % (self.curT))
+
+      # stats
+        print "%d totnumMove,%d totnumofferpd , %d totnumrefuse , %d totnumdef)" %\
+        (self.totnumMove, self.totnumofferpd ,self.totnumrefus ,self.totnumdef)
+
+        print " %d totnumcoop %d totnumstarved  %d totnumold  %d births %d mutated" % \
+        (self.totnumcoop,self.totnumstsarved,self.totnumold,self.births,self.mutated )
+
+
+
+
+
+
+
+
+
 
     def get_cost_of_offspring(self, resources, sight_value, distance_value):
         '''
@@ -519,8 +650,12 @@ if __name__ == "__main__":
 
     print("\nThe players:")
     world.printAllAgents()
+
     while  world.curT < world.stopT:
         world.compute()
+        if len( world.agent_list ) == 0 :
+            print " all agents dead"
+            break
         world.curT += 1
 
     print("\nFinal scores:")

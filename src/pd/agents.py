@@ -2,6 +2,8 @@
 @date 20131124
 @author: mjbommar
 '''
+import world
+import random
 
 
 class Agent(object):
@@ -59,10 +61,11 @@ class Agent(object):
 more TBA
     '''
 
-    # World context; agent needs to know this to ask about its surroundings.
-    world = None
 
-    def __init__(self, world=None):
+    # World context; agent needs to know this to ask about its surroundings.
+    #world = None
+
+    def __init__(self, world ):
         '''
         Constructor, which initializes our agent.
         name identifies the owner and "species"
@@ -93,7 +96,7 @@ more TBA
         if world:
             self.resources = world.starting_resources
         self.agentCapabiitiesDict = {}
-        self.birthThreshold
+        self.birthThreshold = 10
         ##
         # more TBA
         #
@@ -118,11 +121,17 @@ more TBA
          c) world,defect
 
 
-        this is a simple pure strategy player
+        this is a simple random strategy player
 
         '''
-        return world.cooperate
 
+        r = random.random()
+        if r < .333:
+            return world.refuse
+        elif r < 0.667:
+            return world.defect
+        else:
+            return world.cooperate
 
 
     def choose_action( self ):
@@ -143,7 +152,11 @@ more TBA
 
 
     def tryBirth(self):
-        print("%d tryBirth" % (self.agent_id))
+        print("%s tryBirth" % (self.agent_id))
+
+
+        #self.mutated  += 0
+        #self.births  += 1
 
 
     def step(self):
@@ -152,22 +165,29 @@ more TBA
          some agents may loook at thr ooponents history, or
          at thrir own witution. others might play a "pure" dtrategy               or a random one.
          this ;particular agent shooses pd 50%, 50% move
-         *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
+
+             ex
+  *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
         '''
-        print("Ag .%d step " % (self.agent_id))
+        print("Ag .%s step " % (self.agent_id))
 
+        if len( world.agent_list ) < 2 :
 
-        if  randmom.random() < 0.5:
-             # play pd
-            # or now, pick ran oppdo
+            print "cant run with 1 or fewer agents"
+            return None
+
+        if  random.random() < 0.5:
+             # play pd now, pick ran oppdo
+            print "Chose to playe,,,"
             other = world.pickRandomOther( self )
-            play = World.cooperate
-            grec = requestPlayPD ( self, other, play)
+            play = world.cooperate
+            grec = world.requestPlayPD ( self, other, play)
 
         else:
             # see if theere is  randomly chosesn place to momve
+            print "Chose to move,,,"
             there = None
-            requestMoveto ( self , there )
+            world.requestMoveTo ( self , there )
 
 
 
@@ -180,3 +200,8 @@ more TBA
 
 if __name__ == "__main__":
     a = Agent(None)
+
+
+
+###############################################################
+
