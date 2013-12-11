@@ -138,7 +138,7 @@ class World(object):
 
     def playPD ( self, move1 , move2 ):
         pay1, pay2 = world.payoff_matrix[move1][move2]
-        return pay1, pay2
+        return pay1*self.payoff_multiplier, pay2*self.payoff_multiplier
 
     def __init__(self, sysargv1):
         '''
@@ -154,7 +154,7 @@ class World(object):
         self.costPerCellDispersalRange = 1
         self.curT = 0
         self.max_lifetime = 50
-        self.payoff_multiplier = 2
+        self.payoff_multiplier = 3
         self.debug = 0
         self.verbose = 0
         self.rebirth_prob = 0.0
@@ -231,6 +231,8 @@ class World(object):
                 self.starting_resources = int(value)
             elif name == 'num_created_agents' or name == 'nca':
                 self.num_created_agents = int(value)
+            elif name == 'payoff_multiplier' or name == 'pm':
+                self.payoff_multiplier        = int(value)
             #
             # FILL In THE RESt
             #
@@ -346,7 +348,7 @@ class World(object):
 
         for i   in range( self.num_created_agents ):
             ag = agents.Agent( self )
-            ag.name = "X%d"%( i )
+            ag.name = "c%d"%( i )
             agrec = AgentRecord(ag, self)
             ag.agent_record = agrec
             ag.agent_id = agrec.agent_id
@@ -402,9 +404,10 @@ class World(object):
             # Run the agent step
             a.step()
             print ((a, a.agent_record, type( a.agent_record)))
-            arec = self.agent_records_dict[a.agent_id]
-            age = self.curT - arec.time_born
-            print((1, self.curT, a, a.agent_id, age, a.resources))
+            #the jkey error firdt aappeared heer
+            # #arec = self.agent_records_dict[a.agent_id]
+            #age = self.curT - arec.time_born
+            #print((1, self.curT, a, a.agent_id, age, a.resources))
 
         print "# Pay their bills"
         for a in self.get_living_agents():
@@ -412,7 +415,7 @@ class World(object):
             print(( a, a.agent_record, type (agrec) ))
             amt = - (agrec.total_decrement_Per_Step)
             self.update_resources( a,  amt )
-            age = self.curT - arec.time_born
+            age = self.curT - agrec.time_born
             print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
             if a.resources > a.birthThreshold:
                 a.request_birth = True
@@ -557,7 +560,8 @@ class World(object):
         '''
         for a in  self.get_living_agents():   #.reverse():
             # Check if the agent has reached max lifetime
-            if self.curT  >= self.agent_records_dict[a.agent_id].max_lifetime:
+            #if self.curT  >= self.agent_records_dict[a.agent_id].max_lifetime:
+            if self.curT  >= a.agent_record.max_lifetime:
                 if self.debug > 0:
                     arec = a.agent_record
                     print("%s reached max age %d at max lifetime (curT) at %d." \
@@ -584,8 +588,8 @@ class World(object):
                 else:
                     # renmove from akk lists an dicts
                     print "%s is being removed..." % ( a )
-                    del self.agent_records_dict[ a.agent_id ]
-
+                    #del self.agent_records_dict[ a.agent_id ]
+                    ### **RRR jey error
                     self.agent_list.remove( a )
 
 
