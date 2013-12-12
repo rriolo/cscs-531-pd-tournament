@@ -281,6 +281,9 @@ class World(object):
             elif name == 'refusal_cost' or name == 'rc':
                 self.refusal_cost = int(value)
 
+            elif name == 'payment_multiplier' or name == 'pm':
+                self.payment_multiplier = int(value)
+
             else:
                 print  " Unknown name in arg='%s'name='%s' value='%s'\n" % \
                     (arg, name, value)
@@ -401,11 +404,11 @@ class World(object):
             self.agent_list.append( ag )
             print "%d on agent_list" % ( len( self.agent_list))
             self.agent_records_dict[ag.agent_id] = agrec
-            ag.agentCapabiitiesDict["vision"] = i
-            ag.agentCapabiitiesDict["speed"] = i
-            ag.agentCapabiitiesDict["dispersal"] = i
+            ag.agentCapabitiesDict["vision"] = i
+            ag.agentCapabitiesDict["speed"] = i
+            ag.agentCapabitiesDict["dispersal"] = i
             ag.total_decrement_Per_Step = self.calc_total_cost_per_step (\
-                ag.agentCapabiitiesDict)
+                ag.agentCapabitiesDict)
 
 
 
@@ -429,7 +432,7 @@ class World(object):
         if costs * self.days_costs_required > end :
             print "costs > endowment no offspring given"
             return None
-        #Eopenspaces = space.get_openspaces(ag.agentCapabiitiesDict("dispersal"))
+        #Eopenspaces = space.get_openspaces(ag.agentCapabitiesDict("dispersal"))
         #if len(openspaces) == 0:
         #   print "there is no openspaces"
         #   return None
@@ -447,7 +450,7 @@ class World(object):
 
         # we ca make the offsoping
         newag = agents.Agent( world )
-        # we wabt nam t o be  p
+        ag.num_offspring += 1       # we wabt nam t o be  p
         newag.agentCapabilitiesDict = capa
 
         #####
@@ -479,19 +482,25 @@ class World(object):
 
 
 
-    def printAllAgents (self):
-        print(("Agent", "ID", "Alive?", "Resources", "Age"))
+    def printAllAgents (self, fmt):
+        if fmt == 's':
+            print(("Agent", "ID", "Alive?", "Resources", "Age"))
+        elif  fmt == 'm':
+            print(("Agent", "ID", "Alive?", "Resources", "Age"))
+        else:
+            print(("Agent", "ID", "Alive?", "Resources", "Arec resources","Age"))
+
         for a in self.agent_list:
-            arec = a.agent_record
-            age = self.curT - arec.time_born
-            print((a, a.agent_id, a.is_alive, a.resources, age))
+            a.printAgent(  fmt )
+
+
+
 
     def get_living_agents(self):
         '''
         Return only living agents.
         '''
         return [agent for agent in self.agent_list if agent.is_alive == True]
-
 
 
 
@@ -521,7 +530,7 @@ class World(object):
 
         # Shuffle agent order
         numpy.random.shuffle(self.agent_list)
-         # mswke paymentg
+
         # the agent might ask to move or play
         for a in self.get_living_agents():
             # Run the agent step
@@ -529,11 +538,11 @@ class World(object):
             a.step()
 
             # make paymebnts
-            print(( a, a.agent_record, type (agrec) ))
+            #print(( a, a.agent_record, type (agrec) ))
             amt = - (agrec.total_decrement_Per_Step)
             self.update_resources( a,  amt )
             age = self.curT - agrec.time_born
-            print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
+            #print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
             # chech if a wantys ti rwewt a birh
             if a.check_if_want_birth():
                 a.request_birth = True
@@ -546,9 +555,9 @@ class World(object):
             if a.request_birth:
                 a.tryBirth()
 
-        if self.verbose > 3:
-            self.printAllAgents()
-        elif self.verbose > 0:
+        if self.verbose > 3 or self.debug > 1:
+            self.printAllAgents('m')
+        elif self.verbose > 0 or self.debug > 0:
             self.printStepSummary()
 
 
@@ -573,6 +582,8 @@ class World(object):
         '''
 
         self.totnumMove  += 1
+        if self.debug > 1 :
+            print "agent %s Chose to movdTo,,," %  ( agent.agent_id )
 
         # TBA
         # dist caj=lculatr
@@ -604,10 +615,15 @@ class World(object):
          a) world.refuse
          b) world.cooperate
          c) world,defect
+
          the world then calcs who owes  or gains, tells both agbnts th results,
          uodates ita agentrecord, checks if either s dead;
          return GameRecord or None
          '''
+
+        if self.debug > 1 :
+            print "agent %s Chose pd,,," %  ( requestor.agent_id )
+
 
         self.totnumofferpd += 1
 
@@ -626,7 +642,8 @@ class World(object):
             amt = self.refusal_cost
             self.update_resources( requestor,  amt )
             self.update_resources( other,  -amt )
-            print "Chose to refuse,,,"
+            if self.debug > 1 :
+                print "agent %s Chose to refuse,,," %  ( other.agent_id )
             grec = GameRecord( requestor, World.pd, focals_play,\
                             others_play, amt, -amt, other )
 
@@ -637,9 +654,10 @@ class World(object):
             focals_payoff, others_payoff = self.playPD ( focals_play, others_play )
             self.update_resources( requestor,  focals_payoff )
             self.update_resources( other,  others_payoff )
-            print ("req  %s %d  pay %.2f  other  %s  %d pay %.2f ") % \
-                ( requestor.agent_id, focals_play, focals_payoff, \
-                  other.agent_id,  others_play, others_payoff )
+            if self.debug > 1 :
+                print ("PD: req  %s %d  pay %.2f  other  %s  %d pay %.2f ") % \
+                    ( requestor.agent_id, focals_play, focals_payoff, \
+                          other.agent_id,  others_play, others_payoff )
 
             if focals_play == world.cooperate:
                 self.totnumcoop += 1
@@ -683,7 +701,7 @@ class World(object):
             if self.curT  >= a.agent_record.max_lifetime:
                 if self.debug > 0:
                     arec = a.agent_record
-                    print("%s reached max age %d at max lifetime (curT) at %d." \
+                    print("@@@@@@@@@@@@@2%s reached max age %d at max lifetime (curT) at %d." \
                           (a, arec.max_age, arec.max_lifetime))
                 # Set to dead
                 a.is_alive = False
@@ -706,7 +724,7 @@ class World(object):
                     a.max_lifetime = self.max_lifetime
                 else:
                     # renmove from akk lists an dicts
-                    print "%s is being removed..." % ( a )
+                    print "$$$$$$$$$$$$$$$$$$$$$  %s is being removed..." % ( a )
                     #del self.agent_records_dict[ a.agent_id ]
                     ### **RRR jey error
                     self.agent_list.remove( a )
@@ -756,6 +774,17 @@ class World(object):
             print ("       +++ printStepSummary %d >>>" % (self.curT))
 
 
+
+
+
+    def  printActionCounts ( self  ):
+        print "%d totnumMove,%d totnumofferpd , %d totnumrefuse , %d totnumdef)" %\
+        (self.totnumMove, self.totnumofferpd ,self.totnumrefuse ,self.totnumdef)
+
+        print " %d totnumcoop %d totnumstarved  %d totnumold  %d births %d mutated" % \
+        (self.totnumcoop,self.totnumstarved,self.totnumold,self.births,self.mutated )
+
+
     def printFinalStats(self):
         '''
         print  stats eg counts of each agent type
@@ -764,12 +793,8 @@ class World(object):
         if self.debug > 0:
             print ("       +++ printFinalStats %d >>>" % (self.curT))
 
-      # stats
-        print "%d totnumMove,%d totnumofferpd , %d totnumrefuse , %d totnumdef)" %\
-        (self.totnumMove, self.totnumofferpd ,self.totnumrefus ,self.totnumdef)
-
-        print " %d totnumcoop %d totnumstarved  %d totnumold  %d births %d mutated" % \
-        (self.totnumcoop,self.totnumstsarved,self.totnumold,self.births,self.mutated )
+        # stats
+        printActionCounts()
 
 
 
@@ -779,13 +804,12 @@ class World(object):
 
 
 
-
-    def get_cost_of_offspring(self, resources, sight_value, distance_value):
-        '''
-        Get the cost of an offspring with a given set of resources.
-        '''
-        return resources + sight_value * self.per_sight_offspring_cost \
-            + distance_value * self.per_distance_offspring_cost
+#depreicated     def get_cost_of_offspring(self, resources, sight_value, distance_value):
+        #'''
+        #Get the cost of an offspring with a given set of resources.
+        #'''
+        #return resources + sight_value * self.per_sight_offspring_cost \
+         #   + distance_value * self.per_distance_offspring_cost
 
     def __repr__(self):
         '''
@@ -806,20 +830,31 @@ if __name__ == "__main__":
     AgentRecord.world = world
 
     print("\nThe players:")
-    world.printAllAgents()
+    world.printAllAgents('f')
 
     while  world.curT < world.stopT:
-        world.compute()
-        world.count_types()
+        print " "
+        print " "
+        print "\n\n  ======================= start step %d ================\n" \
+             %  ( world.curT )
+        if world.debug > 3:
+            world.printAllAgents( 'f' )
+            world.printActionCounts()
+            world.count_types()
+
+        world.compute()  #### the top level step dynamics
+
         if len( world.agent_list ) == 0 :
             print " all agents dead"
             break
         world.curT += 1
 
     print("\nFinal scores:")
+    world.printAllAgents( 'f' )
     world.count_types()
+    world.printActionCounts()
 
-    world.printAllAgents()
+
 
     print("All done.")
 

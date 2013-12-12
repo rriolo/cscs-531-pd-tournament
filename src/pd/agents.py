@@ -95,9 +95,10 @@ more TBA
         self.is_alive = True
         self.request_birth = False
         self.agent_record = None
+        self.num_offspring = 0
         if world:
             self.resources = world.starting_resources
-        self.agentCapabiitiesDict = world.make_capa_amt_dict ( 3, 1,1,1)
+        self.agentCapabitiesDict = world.make_capa_amt_dict ( 3, 1,1,1)
         self.birthThreshold = 10
         ##
         # more TBA
@@ -105,9 +106,25 @@ more TBA
 
 
 
-    def printAgent ( self ):
+    def printAgent ( self, format ):
         arec = self.agent_record
-        print((self, self.agent_id, self.is_alive, self.resources, arec.age))
+        age  = world.curT - arec.time_born
+
+        if format  == 's':
+            print((self.name, self.agent_id, self.is_alive, self.resources, arec.age))
+        elif format == 'm':
+            print((self.name, self.agent_id, self.is_alive, self.resources,\
+                       arec.resources, age, self.num_offspring))
+        else:
+            print((self.name, self.agent_id, self.is_alive, self.resources,\
+                       arec.resources, age))
+            s = "agentCapabitiesDict.keys():"
+            for k in self.agentCapabitiesDict.keys():
+                          ###
+                s +=  " %s=%d"   % (  k, self.agentCapabitiesDict[k])
+            s += " total_decrement_Per_Step=%d" % ( \
+                arec.total_decrement_Per_Step )
+            print s
 
 
 
@@ -161,10 +178,10 @@ more TBA
         clone
         '''
 
-        vis = self.agentCapabiitiesDict["vision"]
-        sp = self.agentCapabiitiesDict["speed"]
-        disp = self.agentCapabiitiesDict["dispersal"]
-        costs = world.calc_total_cost_per_step ( self.agentCapabiitiesDict )
+        vis = self.agentCapabitiesDict["vision"]
+        sp = self.agentCapabitiesDict["speed"]
+        disp = self.agentCapabitiesDict["dispersal"]
+        costs = world.calc_total_cost_per_step ( self.agentCapabitiesDict )
         end = costs * world.days_costs_required
 
         if end < self.resources:
