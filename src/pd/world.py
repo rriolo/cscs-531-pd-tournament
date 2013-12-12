@@ -148,11 +148,13 @@ class World(object):
         self.agent_path = "agents/"
         self.stopT = 150
         self.worldSize = 30
+        self.days_costs_required = 2
         self.costPerTbaseResMetabol = 3
         self.costPerCellVisRange = 1
         self.costPerUnitSpeed = 1
         self.costPerCellDispersalRange = 1
         self.curT = 0
+        self.num_created_agents = 4
         self.max_lifetime = 50
         self.payoff_multiplier = 3
         self.debug = 0
@@ -169,9 +171,14 @@ class World(object):
         self.agent_records_dict = {}
         self.newborns = []
         self.game_histories = {}  # dict key is tim step int. value ys liet of GameRecorda
+
         self.agent_types_dict = {}
 
-        self.num_created_agents = 4
+
+        self.capability_costs = {"vision":self.costPerCellVisRange , \
+                                     "speed": self.costPerUnitSpeed , \
+                 "dispersal": self.costPerCellDispersalRange,\
+                "basemetab":   self.costPerTbaseResMetabol }
 
         # stats
         self.totnumMove  = 0
@@ -183,6 +190,7 @@ class World(object):
         self.totnumold = 0
         self.births  = 0
         self.mutated  = 0
+
 
 
         # Load agents
@@ -197,8 +205,31 @@ class World(object):
 
         # Initialize space
         self.space = None  # TBI
-        self.per_distance_offspring_cost = 1
-        self.per_sight_offspring_cost = 1
+
+
+
+
+    def calc_total_cost_per_step ( self, amtsDict ):
+        '''
+        costs ar the same, buyt amuts vary
+        '''
+        tot = self.capability_costs["basemetab"]
+        tot += self.capability_costs["vision"] * amtsDict["vision"]
+        tot += self.capability_costs["speed"] * amtsDict ["speed"]
+        tot += self.capability_costs["dispersal"] * amtsDict["dispersal"]
+        return tot
+
+
+
+    def make_capa_costs_dict (self, metab, vis, sp, disp ):
+        self.capability_costs = {"vision": vis, \
+              "speed": sp , "dispersal": disp, "basemetab": metab }
+
+
+
+    def make_capa_amt_dict (self, metab, vis, sp, disp ):
+        return {"vision": vis, \
+              "speed": sp , "dispersal": disp, "basemetab": metab }
 
 
     def processCmdLineArgs(self, args):
@@ -231,11 +262,24 @@ class World(object):
                 self.starting_resources = int(value)
             elif name == 'num_created_agents' or name == 'nca':
                 self.num_created_agents = int(value)
-            elif name == 'payoff_multiplier' or name == 'pm':
-                self.payoff_multiplier        = int(value)
-            #
-            # FILL In THE RESt
-            #
+
+
+            elif name == 'costPerTbaseResMetabol' or name == 'cM':
+                self.costPerTbaseResMetabol   = int(value)
+            elif name == 'costPerCellVisRange' or name == 'cpv':
+                self.costPerCellVisRange = int(value)
+            elif name == 'costPerUnitSpeed' or name == 'cps':
+                self.costPerUnitSpeed = int(value)
+            elif name == 'costPerCellDispersalRange' or name == 'cpdr':
+                self.costPerCellDispersalRange = int(value)
+
+            elif name == 'days_costs_required' or name == 'dcr':
+                self.days_costs_required = int(value)
+
+            elif name == 'verbose' or name == 'v':
+                self.verbose = int(value)
+            elif name == 'refusal_cost' or name == 'rc':
+                self.refusal_cost = int(value)
 
             else:
                 print  " Unknown name in arg='%s'name='%s' value='%s'\n" % \
@@ -357,6 +401,80 @@ class World(object):
             self.agent_list.append( ag )
             print "%d on agent_list" % ( len( self.agent_list))
             self.agent_records_dict[ag.agent_id] = agrec
+            ag.agentCapabiitiesDict["vision"] = i
+            ag.agentCapabiitiesDict["speed"] = i
+            ag.agentCapabiitiesDict["dispersal"] = i
+            ag.total_decrement_Per_Step = self.calc_total_cost_per_step (\
+                ag.agentCapabiitiesDict)
+
+
+
+
+    def requestOffspring ( self , ag, vis,sp,disp, end ):
+        '''
+        worlld ddoes calcs for min end
+        thrn checkd that aag sent rnouh
+        and thasjt it resourcees cna acover it
+
+
+
+        then ckheck for place
+        ikf its all good,,  make neborn,
+        trna end, set up capa'
+
+        reutn None if somehn if went swrong
+        '''
+        capa = self.make_capa_amt_dict ( self.costPerTbaseResMetabol, vis, sp, disp )
+        costs = self.calc_total_cost_per_step ( capa )
+        if costs * self.days_costs_required > end :
+            print "costs > endowment no offspring given"
+            return None
+        #Eopenspaces = space.get_openspaces(ag.agentCapabiitiesDict("dispersal"))
+        #if len(openspaces) == 0:
+        #   print "there is no openspaces"
+        #   return None
+          #
+        #
+
+        agrec = ag.agent_record
+        if agrec.resources!= ag.resources:
+            print "agent record resources does not equal agent resources"
+            return None
+
+        if ag.resources < costs:
+            print "agent resources are less than actual costs"
+            return None
+
+        # we ca make the offsoping
+        newag = agents.Agent( world )
+        # we wabt nam t o be  p
+        newag.agentCapabilitiesDict = capa
+
+        #####
+        #### assign to an openspce
+        #######
+
+        newag.name =  ag.name
+        agrec = AgentRecord(ag, ag.world )
+        newag.agent_record = agrec
+        newag.agent_id = agrec.agent_id
+
+        newag.resources = end
+        ag.resources =- end
+
+        print "************************ created agrec aid >%s< for agid >%s< " %\
+            ( agrec.agent_id,newag.agent_id  )
+        print "offsp of %s  %s" % ( ag.name  , ag.agent_id)
+        world.agent_list.append( newag )
+        print "%d on agent_list" % ( len(world.agent_list))
+        world.agent_records_dict[newag.agent_id] = agrec
+        world.births  += 1
+
+        # check for nmutation ast some poinyt
+        #self.mutated  += 0
+
+
+
 
 
 
@@ -382,11 +500,12 @@ class World(object):
     def compute(self):
         '''
         the main dynamics each step
+        add newborns
         shuffle the agent_list
         give eah agent a chance to step out
-              move or play or give birth
+              move or play ; request newborn
         then the world checjs and cleabn out  the dead/
-        then add new born to the worlgd
+        cooletneewborns
         then print out stats
         '''
         if self.debug > 0:
@@ -396,28 +515,27 @@ class World(object):
         self.game_histories[ self.curT ] = []
         self.cur_game_history = self.game_histories[ self.curT ]
 
+        if len( self.newborns ) > 0 :
+            self.agent_list.extend( self.newborns )
+            self.newborns = []
+
         # Shuffle agent order
         numpy.random.shuffle(self.agent_list)
-
+         # mswke paymentg
         # the agent might ask to move or play
         for a in self.get_living_agents():
             # Run the agent step
-            a.step()
-            print ((a, a.agent_record, type( a.agent_record)))
-            #the jkey error firdt aappeared heer
-            # #arec = self.agent_records_dict[a.agent_id]
-            #age = self.curT - arec.time_born
-            #print((1, self.curT, a, a.agent_id, age, a.resources))
-
-        print "# Pay their bills"
-        for a in self.get_living_agents():
             agrec = a.agent_record
+            a.step()
+
+            # make paymebnts
             print(( a, a.agent_record, type (agrec) ))
             amt = - (agrec.total_decrement_Per_Step)
             self.update_resources( a,  amt )
             age = self.curT - agrec.time_born
             print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
-            if a.resources > a.birthThreshold:
+            # chech if a wantys ti rwewt a birh
+            if a.check_if_want_birth():
                 a.request_birth = True
             else:
                 a.request_birth = False
@@ -432,6 +550,7 @@ class World(object):
             self.printAllAgents()
         elif self.verbose > 0:
             self.printStepSummary()
+
 
 
     def update_resources ( self, a, amt ):

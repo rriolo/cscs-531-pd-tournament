@@ -75,7 +75,7 @@ more TBA
             this is used as key to this agent's instance
             in the world.agent_records_dict
          x,y its location in the worlds space
-         is_alive is set False if the agents resources go <= 0
+          is_alive is set False if the agents resources go <= 0
               and whenit hits max age. i]t can no longer do anythiing'
                and willl be removed by the grm reaper.
           request_bith  the agent can se t it true and the eorld will
@@ -97,11 +97,13 @@ more TBA
         self.agent_record = None
         if world:
             self.resources = world.starting_resources
-        self.agentCapabiitiesDict = {}
+        self.agentCapabiitiesDict = world.make_capa_amt_dict ( 3, 1,1,1)
         self.birthThreshold = 10
         ##
         # more TBA
         #
+
+
 
     def printAgent ( self ):
         arec = self.agent_record
@@ -154,28 +156,30 @@ more TBA
 
 
     def tryBirth(self):
-        print("%s tryBirth: resources %1f  threw %.1f" %\
-                  (self.agent_id, self.resources, self.birthThreshold))
-        # checjk for open spae
-        ag = agents.Agent( self.world )
-        # we wabt nam t o be  p
+        '''
+        assemble  info for requesm eg mutationg
+        clone
+        '''
+
+        vis = self.agentCapabiitiesDict["vision"]
+        sp = self.agentCapabiitiesDict["speed"]
+        disp = self.agentCapabiitiesDict["dispersal"]
+        costs = world.calc_total_cost_per_step ( self.agentCapabiitiesDict )
+        end = costs * world.days_costs_required
+
+        if end < self.resources:
+            world.requestOffspring (self,  vis,sp,disp, end )
 
 
-        ag.name =  self.name
-        agrec = AgentRecord(ag, self.world )
-        ag.agent_record = agrec
-        ag.agent_id = agrec.agent_id
-        ag.resources = ag.birthThreshold
-        self.resources =- ag.resources
-        print "************************ created agrec aid >%s< for agid >%s< " %\
-            ( agrec.agent_id, ag.agent_id  )
-        print "offsp of %s  %s" % (  self.name  , self.agent_id)
-        world.agent_list.append( ag )
-        print "%d on agent_list" % ( len(world.agent_list))
-        world.agent_records_dict[ag.agent_id] = agrec
-        world.births  += 1
 
-        #self.mutated  += 0
+
+
+
+    def check_if_want_birth ( self ):
+        '''
+        a chance to bdelay brth even if they neet technical gpecs
+        '''
+        return  True
 
 
     def step(self):
