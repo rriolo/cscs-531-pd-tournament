@@ -5,11 +5,14 @@
 import world
 import random
 import agents
+import agentsC
 from world import *
 
 
-class Agent(object):
+class AgentC(object):
     '''
+      *********    this claass always cooperates   **********
+
     The Agent class is a base class, meant to be extended by
     our individual players in the PD world.
 
@@ -53,7 +56,7 @@ class Agent(object):
      if you meetcriteria you sebd a rfb - request fur bith mess to tworld;
     the msg inludes a capabiliytyDict which is assugns to te cpbiliti ivar
    in the offsping, keys are capab names
-     "vision"   "speed"   "dispersal"   and values are the requwestws cap,
+     "vision"   "speed"   "dispeal"   and values are the requwestws cap,
      the world use that ti calg charge oerstep,
 
    and the birth threshhol whuch is sum(operstepchsrges) * birthnultiplier z9 3 )
@@ -98,15 +101,11 @@ more TBA
         self.num_offspring = 0
         if world:
             self.resources = world.starting_resources
-
-        self.agentCapabilitiesDict = world.make_capa_amt_dict ( 3, 1,1,10)
+        self.agentCapabilitiesDict = world.make_capa_amt_dict ( 3, 1,1,1)
         self.birthThreshold = 10
         ##
         # more TBA
         #
-
-
-
 
 
 
@@ -122,7 +121,7 @@ more TBA
         else:
             print((self.name, self.agent_id, self.is_alive, self.resources,\
                        arec.resources, age))
-            s = "agentCapabitiesDict.keys():"
+            s = "agentCapabilitiesDict.keys():"
             for k in self.agentCapabilitiesDict.keys():
                           ###
                 s +=  " %s=%d"   % (  k, self.agentCapabilitiesDict[k])
@@ -150,13 +149,8 @@ more TBA
 
         '''
 
-        r = random.random()
-        if r < .333:
-            return world.refuse
-        elif r < 0.667:
-            return world.defect
-        else:
-            return world.cooperate
+
+        return world.cooperate
 
 
     def choose_action( self ):
@@ -179,15 +173,14 @@ more TBA
     def tryBirth(self):
         '''
         assemble  info for requesm eg mutationg
-        clon
+        clone
         '''
-
         vis = self.agentCapabilitiesDict["vision"]
         sp = self.agentCapabilitiesDict["speed"]
         disp = self.agentCapabilitiesDict["dispersal"]
-        costs = world.calc_total_cost_per_step  \
-( self.agentCapabilitiesDict )
+        costs = world.calc_total_cost_per_step ( self.agentCapabilitiesDict )
         end = costs * world.days_costs_required
+
 
         if end < self.resources:
             world.requestOffspring (self,  vis,sp,disp, end )
@@ -201,6 +194,10 @@ more TBA
 
 
 
+
+
+
+
     def check_if_want_birth ( self ):
         '''
         a chance to bdelay brth even if they neet technical gpecs
@@ -208,41 +205,29 @@ more TBA
         return  True
 
 
-
     def step(self):
         '''
          first choose  an action  to request., ie move or play the pd.
          some agents may loook at thr ooponents history, or
-         at thrir own witution. others might play a "pure" dtrategy
-         or a random one.
+         at thrir own witution. others might play a "pure" dtrategy               or a random one.
          this ;particular agent shooses pd 50%, 50% move
 
              ex
-             *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
+  *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
         '''
         if world.debug > 1 :
             print("Ag .%s step " % (self.agent_id))
+
+
 
         if len( world.agent_list ) < 2 :
 
             print "cant run with 1 or fewer agents"
             return None
 
-        if  random.random() < 0.5:
-             # play pd now, pick ran oppdo
-            if world.debug > 1 :
-                print "Chose to playe,,,"
-            other = world.pickRandomOther( self )
-            play = world.cooperate
-            grec = world.requestPlayPD ( self, other, play)
-
-        else:
-            # see if theere is  randomly chosesn place to momve
-            if world.debug > 1 :
-                print "Chose to move,,,"
-            there = None
-            world.requestMoveTo ( self , there )
-
+        other = world.pickRandomOther( self )
+        play =  world.cooperate
+        grec = world.requestPlayPD ( self, other, play)
 
 
 
