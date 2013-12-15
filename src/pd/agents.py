@@ -24,14 +24,15 @@ class Agent(object):
    c. hey live in a 30x30 torus , 0 or 1 agent per cell.
 
     one difference is you can change some of the capabikties, eg,
-    by changing the agent step method, you can make your
+  '  by changing the agent step method, you can make your
     agnts arbiraily  complicated stratigies,   the also can see father,
-    go faster and disperse ooffspring farther, but at a cost.
+ m   go faster and disperse ooffspring farther, but at a cost.
 
      here is a list of mthods the agents must make available[
      fioollowed by a list of methods they must provide,
       the variables iyt nakes available in the __init__ method.
 
+class Lattice2D(object):
 
 
     def __init__(self, world=None):
@@ -54,13 +55,46 @@ class Agent(object):
     the msg inludes a capabiliytyDict which is assugns to te cpbiliti ivar
    in the offsping, keys are capab names
      "vision"   "speed"   "dispersal"   and values are the requwestws cap,
-     the world use that ti calg charge oerstep,
+     the world use that ti calculate the charge perstep,
 
-   and the birth threshhol whuch is sum(operstepchsrges) * birthnultiplier z9 3 )
+   and the birth threshhol whuch is sum of t he basemetab chargfe +'
+  all the indiv capality -charges ) * days_costs_required .
 
 
 
-more TBA
+
+    def requestMoveTo (self, agent, destPos ):
+    def requestPlayPD (self, requestor, other, focals_play):
+
+
+ef  getVisibleAgents( self, agent ):
+    def  getPlayableAgents( self, agent ):
+    def openVisibleCells( self, agent ):
+    def getOpenSpaces( self, pos, dist ):
+    def displaySpace (  self ):
+
+
+before creatibngusing position instances, set
+    Position.torus = True
+    Position.rows = 30
+   Position.cols = 30
+pos = Position ( r, c ):
+    def changeCBy ( self, amt ):
+    def changeRBy ( self, amt ):
+
+
+
+    def randomlyPlaceInSpace ( self, alist ):
+    def isEmptyPosition ( self, pos ):
+    def isEmptyPosition ( self, pos ):
+    def moveTo ( self, what, fromPos, toPos ):
+
+    def checkLocationInSpace(self,  inhabitant, pos):
+    def removeFromSpace (self, ag, pos ):
+
+    def posStr( self, pos ):
+
+
     '''
 
 
@@ -89,9 +123,8 @@ more TBA
         self.name = "RioloRA"
         self.world = world
         self.agent_id = None
-        # prob want space here too   **RR
-        self.x = 0
-        self.y = 0
+
+        self.position = None
         self.is_alive = True
         self.request_birth = False
         self.agent_record = None
@@ -228,6 +261,15 @@ more TBA
             print "cant run with 1 or fewer agents"
             return None
 
+        if world.debug >   0:
+            # testing
+            openvis = world.space.openVisibleCells( self )
+            if world.debugb > 2:
+                print "%s at %s can see open  " % \
+                ( self.agent_id, world.space.posStr( self.position ) )
+            #
+            openplay =  world.space.getPlayableAgents( self )
+
         if  random.random() < 0.5:
              # play pd now, pick ran oppdo
             if world.debug > 1 :
@@ -240,8 +282,22 @@ more TBA
             # see if theere is  randomly chosesn place to momve
             if world.debug > 1 :
                 print "Chose to move,,,"
-            there = None
-            world.requestMoveTo ( self , there )
+            opensps = world.space.getOpenSpaces( self.position, \
+                                         self.agentCapabilitiesDict["speed"] )
+            if len(opensps) == 0:
+                if world.debug > 1:
+                    print " aid %s no where to go"%(agent.agent_id)
+
+                #  focal, action, rmv, omv, fresult , oresult, other ):
+                grec = GameRecord( self, World.move, None, None, None, None, None )
+                world.add_to_history ( grec )
+                return
+
+
+            #  opick abn oprex cell to go to
+            r = random.randrange( len( opensps ) )
+            pickpos =  opensps[r]
+            grec = world.requestMoveTo ( self , pickpos )
 
 
 

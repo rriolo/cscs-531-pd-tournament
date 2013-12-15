@@ -28,12 +28,13 @@ import os
 import sys
 import random
 import numpy
+import pickle
 
 # Load our agents module
 import agents
 import agentsC
 import space
-
+from space import *
 
 
 
@@ -66,7 +67,7 @@ these are added to curGameRecorList, whihx xhanges at start of tuime steop,
 
 class AgentRecord(object):
     '''
-the AgentRecord will keep trak  of
+the AgentRecord will keep trak
         * te agents current resource_level
         * the agevts caoabities (max speed, etc
         *  the agents total_decrement_per_step
@@ -151,7 +152,7 @@ class World(object):
         self.stopT = 150
         self.worldSize = 30
 
-        self.max_pop = self.worldSize * self.worldSize
+
         self.days_costs_required = 2
         self.costPerTbaseResMetabol = 3
         self.costPerCellVisRange = 1
@@ -164,6 +165,7 @@ class World(object):
         self.max_lifetime = 50
         self.payoff_multiplier = 3
         self.debug = 0
+        self.debugb = 4
         self.verbose = 0
         self.rebirth_prob = 0.0
         self.starting_resources = 21
@@ -173,12 +175,21 @@ class World(object):
         # puts vak=ls from runcmd line in self-vars
         self.processCmdLineArgs(sysargv1)
 
+
         # Initialize agents_record_dict, agent snd newborns list
         self.agent_list = []
         self.agent_records_dict = {}
         self.newborns = []
-        self.game_histories = {}  # dict key is tim step int. value ys liet of GameRecorda
+        self.game_histories = {}  # dict key is tim step int. valueameRecorda
+        self.saveFilename = "zoc.sav"
 
+        # Initialize space
+        print "aabout to create space:"
+        self.space = Lattice2D( self, self.worldSize, self.worldSize, True, "Moore")
+        self.max_pop = self.worldSize * self.worldSize
+
+        # Initialize agents_record_dict, agent snd newborns list
+        self.agent_list = []
         self.agent_types_dict = {}
 
 
@@ -204,6 +215,7 @@ class World(object):
         self.popAvgDis = 0.0
         self.firstThisStep = False   # conrold printing
 
+
         # Load agents
         # populate the agent_list, the agent_records_dict and
         # whatever "space" there is with agents in *py files
@@ -212,10 +224,18 @@ class World(object):
         if self.agent_path != "":
             self.load_agents(self.agent_path)
         else:
+            print "about to call creaye unit agents"
             self.create_initial_agents(self)
 
-        # Initialize space
-        self.space = None  # TBI
+
+        # Initialize placenent in space
+        print( "clling random place agents ...")
+        self.space.randomlyPlaceInSpace( self.agent_list )
+        if self.verbose > 1:
+            self.space.displaySpace()
+
+
+
 
 
 
@@ -264,10 +284,14 @@ class World(object):
                 self.stopT = int(value)
             elif name == 'worldSize' or name == 'wSz':
                 self.worldSz = int (value)
+
+            elif name == 'debugb' or name == 'birs':
+                self.debugb = int(value)
             elif name == 'debug' or name == 'D':
                 self.debug = int(value)
+
             elif name == 'verbose' or name == 'V':
-                    self.debug = int(value)
+                    self.verbose = int(value)
             elif name == 'max_lifetime' or name == 'mlt':
                 self.max_lifetime = int(value)
             elif name == 'rbp':
@@ -438,6 +462,33 @@ class World(object):
 
 
 
+
+
+
+    def calc_total_cost_per_step ( self, amtsDict ):
+        '''
+        costs ar the same, buyt amuts vary
+        '''
+        tot = self.capability_costs["basemetab"]
+        tot += self.capability_costs["vision"] * amtsDict["vision"]
+        tot += self.capability_costs["speed"] * amtsDict ["speed"]
+        tot += self.capability_costs["dispersal"] * amtsDict["dispersal"]
+        return tot
+
+
+
+    def make_capa_costs_dict (self, metab, vis, sp, disp ):
+        self.capability_costs = {"vision": vis, \
+              "speed": sp , "dispersal": disp, "basemetab": metab }
+
+
+
+    def make_capa_amt_dict (self, metab, vis, sp, disp ):
+        return {"vision": vis, \
+              "speed": sp , "dispersal": disp, "basemetab": metab }
+
+
+
     def requestOffspring ( self , ag, vis,sp,disp, end ):
         '''
         worlld ddoes calcs for min end
@@ -463,12 +514,17 @@ class World(object):
                 self.firstThisStep = False
             return None
 
-        #Eopenspaces = space.get_openspaces(ag.agentCapabilitiesDict("dispersal"))
-        #if len(openspaces) == 0:
-        #   print "there is no openspaces"
-        #   return None
-          #
-        #
+        disp = ag.agentCapabilitiesDict["dispersal"]
+        openposlist = self.space.getOpenSpaces( ag.position, disp )
+        if len(openposlist) == 0:
+            print "there is no openspaces for offspring"
+            print "ag %s, disp=%d  pos=%s" %\
+                ( ag.agent_id, disp, self.space.posStr(ag.position ) )
+            return None
+
+        # pick one pos at  random
+        r = random.randint( 0, len( openposlist )-1)
+        newbornpos = openposlist[r]
 
         agrec = ag.agent_record
         if self.debug > 2:
@@ -505,7 +561,7 @@ class World(object):
         newag.resources = end
         ag.resources -= end
         agrec.resources -= end
-
+        self.space.putAt( newag, newbornpos )
         if self.debug > 0:
             print "************************ created agrec aid >%s< for agid >%s< " %\
                 ( agrec.agent_id,newag.agent_id  )
@@ -635,22 +691,49 @@ class World(object):
                    (ag.agent_id, ag.resources , ag.agent_record.resources )
 
 
-    def requestMoveTo (self, agent, destination_loc):
+    def requestMoveTo (self, agent, destPos ):
         '''
         agnt wants to move; chech that
         dest_loc us open and withibn agents range'
         if so, move and return true; if noyt return false
+        we will be  a little stingy with the deinition of distasnce
+        they can travel and say they can go to all the celllls they can see eit
+        an euqvent visionrannge, whixh means thet ca get to any cell
+        in a /- distance around thei pos/
+
         '''
+        agrange = agent.agentCapabilitiesDict["speed"]
+        destrow =  destPos.row
+        destcol =  destPos.col
+        agrow =  agent.position.row
+        agcol =  agent.position.col
 
-        self.totnumMove  += 1
-        if self.debug > 1 :
-            print "agent %s Chose to movdTo,,," %  ( agent.agent_id )
+        rowdist = abs( agrow - destrow )
+        coldist = abs( agcol - destcol )
 
-        # TBA
-        # dist caj=lculatr
-        # mover
-        # create game rec and add to history
-        return False
+        retn = None     ### for grec
+
+        if rowdist > agrange or coldist  > agrange:
+             print "ag %s denied reque\st to to move--toofar" %(agent.agent_id)
+
+        elif  not self.space.isEmptyPosition(destPos):
+             print "ag %s denied reque\st to to move--not openr" %(agent.agent_id)
+
+        else:
+            # ok to move
+            self.totnumMove  += 1
+            if self.debug > 1 :
+                print "agent %s Chose to movdTo,,," %  ( agent.agent_id )
+
+            # move,  create game rec and add to history
+            self.space.moveTo( agent, agent.position, destPos)
+            retn = destPos
+
+        #     focal, action, rmv, omv, fresult , oresult, other ):
+        grec = GameRecord( agent, World.move, retn, None, None, None, None )
+        self.add_to_history ( grec )
+
+
 
 
     def pickRandomOther ( self, me ):
@@ -680,6 +763,9 @@ class World(object):
          the world then calcs who owes  or gains, tells both agbnts th results,
          uodates ita agentrecord, checks if either s dead;
          return GameRecord or None
+
+    def __init__( self, focal, action, rmv, omv, fresult , oresult, other ):
+
          '''
 
         if self.debug > 1 :
@@ -767,7 +853,8 @@ class World(object):
                 # Set to dead
                 a.is_alive = False
                 self.totnumold  += 1
-
+                # remove from the space
+                self.space.removeFromSpace(a,a.position)
 
             # Check if the agent has non-positive resources
             if a.resources <= 0:
@@ -777,6 +864,8 @@ class World(object):
                 # Set to dead
                 a.is_alive = False
                 self.totnumstarved += 1
+                self.space.removeFromSpace(a,a.position)
+
 
         for  a in self.agent_list:
            if not a.is_alive :
@@ -790,52 +879,12 @@ class World(object):
                     #del self.agent_records_dict[ a.agent_id ]
                     ### **RRR jey error
                     self.agent_list.remove( a )
+                    if a.position != None:
+                        self.space.removeFromSpace(a,a.position)
 
 
 
-    def  getVisibleAgents( self, agent ):
-        '''
-        ]a stub that returns  random sampleo o f agents,
-
-        '''
-        vis = agent.agentCapabilitiesDict["vis"]
-	r = random.randint( 0, agent_list.size()-1  )
-        numpy.random.shuffle(self.agent_list)
-        retlist =agent_list[0:r]
-        retlist.remove( agent )
-	return retlist
-
-
-
-    def  getPlayableAgents( self, agent ):
-        '''
-        ]a stub that returns  random sample o f 0-8 agents agents,
-        excluding the  requestor.
-
-        '''
-	r = random.randint( 0, 8  )
-        numpy.random.shuffle(self.agent_list)
-        retlist =agent_list[0:r]
-        retlist.remove( agent )
-	return retlist
-
-
-    def openVisibleCells( self, agent ):
-        '''
-        ]a stub that returns  random sampleo of tupls
-        emulatuing the list of Pointss you will get for open cells
-        '''
-        vis = agent.agentCapabilitiesDict["vis"]
-	r = random.randint( 0, agent_list.size()-1  )
-        retlist = []
-        for i in range(  r ):
-            pt = Point( random.randint(20), random,randint(20) )
-            retlist.append ( pt )
-
-
-
-
-#################################################################
+################################################################
 
     def count_types ( self ):
         '''
@@ -883,12 +932,15 @@ class World(object):
 
     def printPopAvgs( self ):
         pop = len( self.agent_list )
+        newb = len ( self.newborns )
         if pop == 0 :
             print "no living agents"
             return
         self.calcPopAvgTraits ( )
-        print "====> step %d   pop %d  Avg  vis %.3f  spd  %.3f  disp  %.3f" % \
-            ( self.curT, pop, self.popAvgVis, self.popAvgSpd, self.popAvgDis )
+        print "====> step %d   pop %d  newb %d  Avg  vis %.3f  spd  %.3f  disp  %.3f" % \
+            ( self.curT, pop, newb,  self.popAvgVis, self.popAvgSpd, self.popAvgDis )
+
+
 
     def printStepSummary(self):
         '''
@@ -927,9 +979,67 @@ class World(object):
 
 
 
+    def testSpace ():
+        '''
+        positiom are ns sare tuples
 
 
 
+        get( pos)
+        put( pos, oj
+        get_neighbors_von_neumann
+        get_neaighbors(pos, dist) )
+        get_Moore-neighbors( pos , dist )
+        '''
+
+        self.space = Space( 6, 6, "Moore" )
+
+
+
+
+
+
+    def chechAgentsInSpace (self ):
+        '''
+        be s ure there cahced loction matches where thye reallly are
+        '''
+        err = 0
+        for r in range  ( self.space.num_rows):
+            for c in range ( world.space.num_cols):
+                pos = Position(r,c)
+                if self.space.isOccupiedPosition( pos ):
+                    ag = self.space.getOccupant( pos )
+                    if not self.space.checkLocationInSpace(ag, pos):
+                        err += 1
+        if err > 0:
+            print "chechAgentsInSpace found errs."
+
+
+    def saveDS( self ):
+#
+
+        #p = pickle.Pickler ( self.saveFilename, 2 )
+        #p.dump(self.game_histories)
+
+        fh = open(  self.saveFilename , 'wb')
+
+        pickle.dump(self.game_histories , fh, -1)
+
+        pickle.dump(self.agent_list , fh, -1)
+        pickle.dump(self.agent_records_dict , fh, -1)
+        pickle.dump(self.newborns , fh, -1)
+        pickle.dump(self.game_histories , fh, -1)
+        pickle.dump( self.space, fh, -1)
+        fh.close()
+        return
+
+        pickle.dump(boolean, open("filename.pkl", "wb"))
+
+        pickle.dump(self.game_histories , fh )
+        print"pickling things  in '%s'" % ( self.saveFilename )
+        # pickle.dump(
+
+        fh.close()
 
 
 #depreicated     def get_cost_of_offspring(self, resources, sight_value, distance_value):
@@ -948,6 +1058,28 @@ class World(object):
 
 #################################################################
 ##############################################################333
+
+
+
+
+######################################
+#LOADING FUNCTIONS
+######################################
+
+def saveObject(obj, filename):
+    with open(filename, 'wb') as output:
+        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
+
+
+def loadObject( filename ):
+    m = None
+    with open( filename, 'rb') as input:
+        m = pickle.load(input)
+        return m
+
+#########################################################3
+##########################################################3
+
 
 if __name__ == "__main__":
     #print  str(sys.argv)  # for cmd line parameters
@@ -993,6 +1125,15 @@ if __name__ == "__main__":
     world.printActionCounts()
 
 
+    if world.verbose > 1:
+        world.space.displaySpace()
+
+    world.chechAgentsInSpace()
+
+    world.printPopAvgs()
+
+
+    world.saveDS()
 
     print("All done.")
 
