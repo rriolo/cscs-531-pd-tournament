@@ -2,14 +2,16 @@
 @date 20131124
 @author: mjbommar
 '''
-import world
+
+# Standard imports
 import random
-import agents
-import agentsC
+
+# PD imports
+import world
 from world import *
 
-
 class AgentC(object):
+
     '''
       *********    this claass always cooperates   **********
 
@@ -66,11 +68,9 @@ class AgentC(object):
 more TBA
     '''
 
-
     # World context; agent needs to know this to ask about its surroundings.
     #world = None
-
-    def __init__(self, world ):
+    def __init__(self, world):
         '''
         Constructor, which initializes our agent.
         name identifies the owner and "species"
@@ -101,40 +101,41 @@ more TBA
         self.num_offspring = 0
         if world:
             self.resources = world.starting_resources
-        self.agentCapabilitiesDict = world.make_capa_amt_dict ( 3, 1,1,1)
+        self.agentCapabilitiesDict = world.make_capa_amt_dict(3, 1, 1, 1)
         self.birthThreshold = 10
         ##
         # more TBA
         #
 
-
-
-    def printAgent ( self, format, currT ):
+    def printAgent(self, format, currT):
         arec = self.agent_record
-        age  = currT - arec.time_born
+        age = currT - arec.time_born
 
-        if format  == 's':
-            print((self.name, self.agent_id, self.is_alive, self.resources, arec.age))
+        if format == 's':
+            print(
+                (self.name,
+                 self.agent_id,
+                 self.is_alive,
+                 self.resources,
+                 arec.age))
         elif format == 'm':
-            print((self.name, self.agent_id, self.is_alive, self.resources,\
-                       arec.resources, age, self.num_offspring))
+            print((self.name, self.agent_id, self.is_alive, self.resources,
+                   arec.resources, age, self.num_offspring))
         else:
-            print((self.name, self.agent_id, self.is_alive, self.resources,\
-                       arec.resources, age))
+            print((self.name, self.agent_id, self.is_alive, self.resources,
+                   arec.resources, age))
             s = "agentCapabilitiesDict.keys():"
             for k in self.agentCapabilitiesDict.keys():
                           ###
-                s +=  " %s=%d"   % (  k, self.agentCapabilitiesDict[k])
-            s += " total_decrement_Per_Step=%d" % ( \
-                arec.total_decrement_Per_Step )
+                s += " %s=%d" % (k, self.agentCapabilitiesDict[k])
+            s += " total_decrement_Per_Step=%d" % (
+                arec.total_decrement_Per_Step)
             print s
-
-
 
     def send_agent_id(self):
         return self.agent_id
 
-    def choose_reply( self, requestor ):
+    def choose_reply(self, requestor):
         '''
         requestor is ptr to agent who wna t to play PD eith you
            you have to rpely 1 of 3 choices'
@@ -149,11 +150,9 @@ more TBA
 
         '''
 
-
         return world.cooperate
 
-
-    def choose_action( self ):
+    def choose_action(self):
         '''
         your step, so yhou have t o do
            you have to rpely 1 of 3 choices'
@@ -168,8 +167,6 @@ more TBA
         '''
         return world.cooperate
 
-
-
     def tryBirth(self):
         '''
         assemble  info for requesm eg mutationg
@@ -178,32 +175,31 @@ more TBA
         vis = self.agentCapabilitiesDict["vision"]
         sp = self.agentCapabilitiesDict["speed"]
         disp = self.agentCapabilitiesDict["dispersal"]
-        costs = world.calc_total_cost_per_step ( self.agentCapabilitiesDict )
+        costs = world.calc_total_cost_per_step(self.agentCapabilitiesDict)
         end = costs * world.days_costs_required
 
-
         if end < self.resources:
-            world.requestOffspring (self,  vis,sp,disp, end )
-            if world.debug > 1 :
-                print(("Succeeded in requesting offspring", self, end, self.resources))
+            world.requestOffspring(self, vis, sp, disp, end)
+            if world.debug > 1:
+                print(
+                    ("Succeeded in requesting offspring",
+                     self,
+                     end,
+                     self.resources))
 
-	else:
-            if world.debug > 1 :
-                print(("Failed to request offspring", self, end, self.resources))
+        else:
+            if world.debug > 1:
+                print(
+                    ("Failed to request offspring",
+                     self,
+                     end,
+                     self.resources))
 
-
-
-
-
-
-
-
-    def check_if_want_birth ( self ):
+    def check_if_want_birth(self):
         '''
         a chance to bdelay brth even if they neet technical gpecs
         '''
-        return  True
-
+        return True
 
     def step(self):
         '''
@@ -215,21 +211,17 @@ more TBA
              ex
   *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
         '''
-        if world.debug > 1 :
+        if world.debug > 1:
             print("Ag .%s step " % (self.agent_id))
 
-
-
-        if len( world.agent_list ) < 2 :
+        if len(world.agent_list) < 2:
 
             print "cant run with 1 or fewer agents"
             return None
 
-        other = world.pickRandomOther( self )
-        play =  world.cooperate
-        grec = world.requestPlayPD ( self, other, play)
-
-
+        other = world.pickRandomOther(self)
+        play = world.cooperate
+        grec = world.requestPlayPD(self, other, play)
 
     def __repr__(self):
         '''
@@ -243,4 +235,3 @@ if __name__ == "__main__":
 
 
 ###############################################################
-

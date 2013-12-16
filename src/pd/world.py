@@ -1,5 +1,3 @@
-
-
 '''
 @date 20131124
 @author: mjbommar
@@ -16,11 +14,6 @@ need
 
 
 *  make all woelr par vlaues availabe;
-
-
-
-
-
 '''
 
 # Load standard packages
@@ -36,11 +29,11 @@ import agentsC
 import space
 from space import *
 
-
-
 ############################################################
 
-class GameRecord( object ):
+
+class GameRecord(object):
+
     '''
     Record what happ]ens for every step() message executed
     focal = ptr agent executing thr step
@@ -54,10 +47,11 @@ class GameRecord( object ):
 these are added to curGameRecorList, whihx xhanges at start of tuime steop,
   the  lists are in  the game_histories dict, keyed by curT whenplayed
     '''
-    def __init__( self, focal, action, rmv, omv, fresult , oresult, other ):
+
+    def __init__(self, focal, action, rmv, omv, fresult, oresult, other):
         self.focal = focal
         self.action = action
-        self.requestor_move  = rmv
+        self.requestor_move = rmv
         self.other_move = omv
         self.other = other
         self.focals_result = fresult
@@ -65,9 +59,11 @@ these are added to curGameRecorList, whihx xhanges at start of tuime steop,
 
 #########################################################
 
+
 class AgentRecord(object):
+
     '''
-the AgentRecord will keep trak
+    the AgentRecord will keep trak
         * te agents current resource_level
         * the agevts caoabities (max speed, etc
         *  the agents total_decrement_per_step
@@ -77,36 +73,36 @@ the AgentRecord will keep trak
 
         '''
     # World context; agent needs to know this to ask about its surroundings.
+
     def __init__(self, agent_ptr, world):
+        # Set pointer to world
         self.world = world
 
+        # Set agent record parameters
         self.time_born = self.world.curT
         self.max_age = self.world.max_lifetime
         self.max_lifetime = world.curT + self.max_age
         self.name = agent_ptr.name
-        s ="%s-%03d-%03d" % (agent_ptr.name, world.curT,World.next_ID)
-        if world.debug > 1 :
-            print "in ag  init aid >%s<" % ( s )
+        s = "%s-%03d-%03d" % (agent_ptr.name, world.curT, World.next_ID)
+        if world.debug > 1:
+            print "in ag  init aid >%s<" % (s)
         self.agent_id = s
         World.next_ID += 1
         self.agent_ptr = agent_ptr
-        #self.die_step = self.world.curT + self.max_lifetime - 1
-        #self.age = 0
+        # self.die_step = self.world.curT + self.max_lifetime - 1
+        # self.age = 0
         self.resources = world.starting_resources
 
         # fake srtuuff
         self.total_decrement_Per_Step = 2
         # step-statuse
 
-       # &etc
-
 
 #################################################################
 ################################################################
 
-
-
 class World(object):
+
     '''
     The World class defines the base class for
     repeated PD games with an arbitrary pool of players
@@ -133,25 +129,23 @@ class World(object):
     refuse = 2
     cooperate = 0
     defect = 1
-    pd   = 3
+    pd = 3
     move = 4
     payoff_matrix = [[(3, 3), (0, 5)],
-                    [(5, 0), (1, 1)]]
+                     [(5, 0), (1, 1)]]
 
-
-    def playPD ( self, move1 , move2 ):
+    def playPD(self, move1, move2):
         pay1, pay2 = world.payoff_matrix[move1][move2]
-        return pay1*self.payoff_multiplier, pay2*self.payoff_multiplier
+        return pay1 * self.payoff_multiplier, pay2 * self.payoff_multiplier
 
     def __init__(self, sysargv1):
         '''
         Constructor
         '''
         # Set parameters defaolts
-        self.agent_path = ""  #"agents/"
+        self.agent_path = ""  # "agents/"
         self.stopT = 150
         self.worldSize = 30
-
 
         self.days_costs_required = 2
         self.costPerTbaseResMetabol = 3
@@ -175,7 +169,6 @@ class World(object):
         # puts vak=ls from runcmd line in self-vars
         self.processCmdLineArgs(sysargv1)
 
-
         # Initialize agents_record_dict, agent snd newborns list
         self.agent_list = []
         self.agent_records_dict = {}
@@ -185,36 +178,34 @@ class World(object):
 
         # Initialize space
         print "aabout to create space:"
-        self.space = Lattice2D( self, self.worldSize, self.worldSize, True, "Moore")
+        self.space = Lattice2D(
+            self, self.worldSize, self.worldSize, True, "Moore")
         self.max_pop = self.worldSize * self.worldSize
 
         # Initialize agents_record_dict, agent snd newborns list
         self.agent_list = []
         self.agent_types_dict = {}
 
-
-        self.capability_costs = {"vision":self.costPerCellVisRange , \
-                                     "speed": self.costPerUnitSpeed , \
-                 "dispersal": self.costPerCellDispersalRange,\
-                "basemetab":   self.costPerTbaseResMetabol }
+        self.capability_costs = {"vision": self.costPerCellVisRange,
+                                 "speed": self.costPerUnitSpeed,
+                                 "dispersal": self.costPerCellDispersalRange,
+                                 "basemetab": self.costPerTbaseResMetabol}
 
         # stats
-        self.totnumMove  = 0
+        self.totnumMove = 0
         self.totnumofferpd = 0
-        self.totnumrefuse  = 0
-        self.totnumdef  = 0
-        self.totnumcoop  =0
+        self.totnumrefuse = 0
+        self.totnumdef = 0
+        self.totnumcoop = 0
         self.totnumstarved = 0
         self.totnumold = 0
-        self.births  = 0
-        self.mutated  = 0
-
+        self.births = 0
+        self.mutated = 0
 
         self.popAvgVis = 0.0
         self.popAvgSpd = 0.0
         self.popAvgDis = 0.0
-        self.firstThisStep = False   # conrold printing
-
+        self.firstThisStep = False  # conrold printing
 
         # Load agents
         # populate the agent_list, the agent_records_dict and
@@ -227,44 +218,30 @@ class World(object):
             print "about to call creaye unit agents"
             self.create_initial_agents(self)
 
-
         # Initialize placenent in space
-        print( "clling random place agents ...")
-        self.space.randomlyPlaceInSpace( self.agent_list )
+        print("clling random place agents ...")
+        self.space.randomlyPlaceInSpace(self.agent_list)
         if self.verbose > 1:
             self.space.displaySpace()
 
-
-
-
-
-
-
-    def calc_total_cost_per_step ( self, amtsDict ):
+    def calc_total_cost_per_step(self, amtsDict):
         '''
         costs ar the same, buyt amuts vary
         '''
         tot = self.capability_costs["basemetab"]
         tot += self.capability_costs["vision"] * amtsDict["vision"]
-        tot += self.capability_costs["speed"] * amtsDict ["speed"]
+        tot += self.capability_costs["speed"] * amtsDict["speed"]
         tot += self.capability_costs["dispersal"] * amtsDict["dispersal"]
         return tot
 
+    def make_capa_costs_dict(self, metab, vis, sp, disp):
+        self.capability_costs = {"vision": vis,
+                                 "speed": sp, "dispersal": disp, 
+                                 "basemetab": metab}
 
-
-    def make_capa_costs_dict (self, metab, vis, sp, disp ):
-        self.capability_costs = {"vision": vis, \
-              "speed": sp , "dispersal": disp, "basemetab": metab }
-
-
-
-    def make_capa_amt_dict (self, metab, vis, sp, disp ):
-        return {"vision": vis, \
-              "speed": sp , "dispersal": disp, "basemetab": metab }
-
-
-
-
+    def make_capa_amt_dict(self, metab, vis, sp, disp):
+        return {"vision": vis,
+                "speed": sp, "dispersal": disp, "basemetab": metab}
 
     def processCmdLineArgs(self, args):
         # Process command line arguments of the form
@@ -283,7 +260,7 @@ class World(object):
             elif name == 'stopT' or name == 'T':
                 self.stopT = int(value)
             elif name == 'worldSize' or name == 'wSz':
-                self.worldSz = int (value)
+                self.worldSz = int(value)
 
             elif name == 'debugb' or name == 'birs':
                 self.debugb = int(value)
@@ -291,7 +268,7 @@ class World(object):
                 self.debug = int(value)
 
             elif name == 'verbose' or name == 'V':
-                    self.verbose = int(value)
+                self.verbose = int(value)
             elif name == 'max_lifetime' or name == 'mlt':
                 self.max_lifetime = int(value)
             elif name == 'rbp':
@@ -299,15 +276,13 @@ class World(object):
             elif name == 'starting_resources' or name == 'sr':
                 self.starting_resources = int(value)
             elif name == 'num_created_agents' or name == 'nca':
-                 self.num_created_agents = int(value)
+                self.num_created_agents = int(value)
 
             elif name == 'prob_mut' or name == 'prm':
                 self.prob_mut = float(value)
 
-
-
             elif name == 'costPerTbaseResMetabol' or name == 'cM':
-                self.costPerTbaseResMetabol   = int(value)
+                self.costPerTbaseResMetabol = int(value)
             elif name == 'costPerCellVisRange' or name == 'cpv':
                 self.costPerCellVisRange = int(value)
             elif name == 'costPerUnitSpeed' or name == 'cps':
@@ -333,10 +308,6 @@ class World(object):
                 print  " Unknown name in arg='%s'name='%s' value='%s'\n" % \
                     (arg, name, value)
                 help()
-
-
-
-
 
     def load_agents(self, agent_path):
         '''
@@ -370,31 +341,32 @@ class World(object):
                 continue
 
             module_name = os.path.basename(file_name).replace(".py", "")
-            print("pr module name >%s<  filename >%s<" % (module_name, file_name) )
+            print("pr module name >%s<  filename >%s<" %
+                  (module_name, file_name))
             # Import the module
             __import__(module_name, globals(), locals(), ['*'])
 
-            print("done module name >%s<  filename >%s<" % (module_name, file_name) )
-
+            print("done module name >%s<  filename >%s<" %
+                  (module_name, file_name))
 
             if self.debug > 0:
                 print ("       +++  open %s >>>" % (module_name))
 
             # Now iterate over module contents.
             for object_name in dir(sys.modules[module_name]):
-                print "object_name >%s< " % ( object_name )
+                print "object_name >%s< " % (object_name)
                 if object_name == "numpy":
                     print "skipping  nympy..."
                     break
                 object_value = getattr(sys.modules[module_name], object_name)
                 print "objectr valuie"
-                #print object_value
+                # print object_value
                 try:
                     # Instantiate.
                     print "try to instantiate..."
                     object_instance = object_value(self)
                     print object_instance
-                    print "--> instance {0} ".format ( object_instance )
+                    print "--> instance {0} ".format(object_instance)
                     # If the variable matches the Player class type, include.
                     if isinstance(object_instance,
                                   agents.Agent):
@@ -403,30 +375,30 @@ class World(object):
                         # create a record for it
                         try:
                             agrec = AgentRecord(object_instance, self)
-                        except Exception, E:
+                        except Exception as E:
                             print E
                         object_instance.agent_record = agrec
                         object_instance.agent_id = agrec.agent_id
 
-                        print "created agrec aid >%s< for agid >%s< " %\
-                            ( agrec.agent_id, object_instance.agent_id  )
+                        print "created agrec aid >%s< for agid >%s< " % \
+                            (agrec.agent_id, object_instance.agent_id)
                         self.agent_list.append(object_instance)
-                        print "%d on agent_list" % ( len( self.agent_list))
+                        print "%d on agent_list" % (len(self.agent_list))
 
                         try:
-                            self.agent_records_dict[object_instance.agent_id] = agrec
-                        except Exception, E:
+                            self.agent_records_dict[
+                                object_instance.agent_id] = agrec
+                        except Exception as E:
                             print E
-                        print( "max_age %d  max_lifetime %d (curT %d)" % \
-                            agrec.max_age, agrec.max_lifetime, self.curT )
+                        print("max_age %d  max_lifetime %d (curT %d)" %
+                              agrec.max_age, agrec.max_lifetime, self.curT)
                         # Add to list
                         self.agent_list.append(object_instance)
-                        print "%d on agent_list" % ( len( self.agent_list))
-                except Exception, E:
+                        print "%d on agent_list" % (len(self.agent_list))
+                except Exception as E:
                     pass
 
-
-    def create_initial_agents (self, world ):
+    def create_initial_agents(self, world):
         '''
         if not loadagents via agents_path, create agents.
         by deafualt it wil ttry o create copies of the class
@@ -435,61 +407,30 @@ class World(object):
         '''
         print "create_initial_agents "
 
-
-        for i   in range( self.num_created_agents ):
+        for i in range(self.num_created_agents):
             if self.initial_agent_type == "allC":
-                ag = agentsC.AgentC( self )
+                ag = agentsC.AgentC(self)
             else:
-                ag = agents.Agent( self )
-            ag.name = "c%d"%( i )
+                ag = agents.Agent(self)
+            ag.name = "c%d" % (i)
             agrec = AgentRecord(ag, self)
             ag.agent_record = agrec
             ag.agent_id = agrec.agent_id
             if self.debug > 0:
-                print "created agrec aid >%s< for agid >%s< " %\
-                    ( agrec.agent_id, ag.agent_id  )
-            self.agent_list.append( ag )
-            #print "%d on agent_list" % ( len( self.agent_list))
+                print "created agrec aid >%s< for agid >%s< " % \
+                    (agrec.agent_id, ag.agent_id)
+            self.agent_list.append(ag)
+            # print "%d on agent_list" % ( len( self.agent_list))
             self.agent_records_dict[ag.agent_id] = agrec
             ag.agentCapabilitiesDict["vision"] = i
             ag.agentCapabilitiesDict["speed"] = i
             ag.agentCapabilitiesDict["dispersal"] = i
-            ag.total_decrement_Per_Step = self.calc_total_cost_per_step (\
+            ag.total_decrement_Per_Step = self.calc_total_cost_per_step(
                 ag.agentCapabilitiesDict)
             ag.resources = ag.world.starting_resources
             agrec.resources = ag.world.starting_resources
 
-
-
-
-
-
-
-    def calc_total_cost_per_step ( self, amtsDict ):
-        '''
-        costs ar the same, buyt amuts vary
-        '''
-        tot = self.capability_costs["basemetab"]
-        tot += self.capability_costs["vision"] * amtsDict["vision"]
-        tot += self.capability_costs["speed"] * amtsDict ["speed"]
-        tot += self.capability_costs["dispersal"] * amtsDict["dispersal"]
-        return tot
-
-
-
-    def make_capa_costs_dict (self, metab, vis, sp, disp ):
-        self.capability_costs = {"vision": vis, \
-              "speed": sp , "dispersal": disp, "basemetab": metab }
-
-
-
-    def make_capa_amt_dict (self, metab, vis, sp, disp ):
-        return {"vision": vis, \
-              "speed": sp , "dispersal": disp, "basemetab": metab }
-
-
-
-    def requestOffspring ( self , ag, vis,sp,disp, end ):
+    def requestOffspring(self, ag, vis, sp, disp, end):
         '''
         worlld ddoes calcs for min end
         thrn checkd that aag sent rnouh
@@ -500,38 +441,38 @@ class World(object):
 
         reutn None if somehn if went swrong
         '''
-        capa = self.make_capa_amt_dict ( self.costPerTbaseResMetabol, vis, sp, disp )
-        costs = self.calc_total_cost_per_step ( capa )
-        if costs * self.days_costs_required > end :
+        capa = self.make_capa_amt_dict(
+            self.costPerTbaseResMetabol, vis, sp, disp)
+        costs = self.calc_total_cost_per_step(capa)
+        if costs * self.days_costs_required > end:
             print "costs > endowment no offspring given"
             return None
 
-
-        if len( self.agent_list) + len( self.newborns ) >= self.max_pop:
-            if  self.firstThisStep:
-                print "FAILED birth: world is full with %d agents + %d newborns at T=%d" %\
-                    ( len( self.agent_list ), len (self.newborns), self.curT )
+        if len(self.agent_list) + len(self.newborns) >= self.max_pop:
+            if self.firstThisStep:
+                print "FAILED birth: world is full with %d agents + %d newborns at T=%d" % \
+                    (len(self.agent_list), len(self.newborns), self.curT)
                 self.firstThisStep = False
             return None
 
         disp = ag.agentCapabilitiesDict["dispersal"]
-        openposlist = self.space.getOpenSpaces( ag.position, disp )
+        openposlist = self.space.getOpenSpaces(ag.position, disp)
         if len(openposlist) == 0:
             print "there is no openspaces for offspring"
-            print "ag %s, disp=%d  pos=%s" %\
-                ( ag.agent_id, disp, self.space.posStr(ag.position ) )
+            print "ag %s, disp=%d  pos=%s" % \
+                (ag.agent_id, disp, self.space.posStr(ag.position))
             return None
 
         # pick one pos at  random
-        r = random.randint( 0, len( openposlist )-1)
+        r = random.randint(0, len(openposlist) - 1)
         newbornpos = openposlist[r]
 
         agrec = ag.agent_record
         if self.debug > 2:
             print((agrec.resources, ag.resources))
-	if agrec.resources != ag.resources:
+        if agrec.resources != ag.resources:
             print "agent record resources does not equal agent resources "
-            print((ag.agent_id,ag.resources,agrec.agent_id, agrec.resources))
+            print((ag.agent_id, ag.resources, agrec.agent_id, agrec.resources))
             return None
 
         if ag.resources < costs:
@@ -539,86 +480,73 @@ class World(object):
             print "agent resources are less than actual costs"
             return None
 
-
         # we ca make the offsoping
         if self.initial_agent_type == "allC":
-            newag = agentsC.AgentC( self )
+            newag = agentsC.AgentC(self)
         else:
-            newag = agents.Agent( world )
-        ag.num_offspring += 1       # we wabt nam t o be  p
+            newag = agents.Agent(world)
+        ag.num_offspring += 1  # we wabt nam t o be  p
         newag.agentCapabilitiesDict = capa
 
-
         #####
-        #### assign to an openspce
+        # assign to an openspce
         #######
-
-        newag.name =  ag.name
-        newagrec = AgentRecord(newag, newag.world )
+        newag.name = ag.name
+        newagrec = AgentRecord(newag, newag.world)
         newag.agent_id = newagrec.agent_id
         newag.agent_record = newagrec
-	newagrec.resources = end
+        newagrec.resources = end
         newag.resources = end
         ag.resources -= end
         agrec.resources -= end
-        self.space.putAt( newag, newbornpos )
+        self.space.putAt(newag, newbornpos)
         if self.debug > 0:
-            print "************************ created agrec aid >%s< for agid >%s< " %\
-                ( agrec.agent_id,newag.agent_id  )
-            print "offsp of %s  %s" % ( ag.name  , ag.agent_id)
-        world.newborns.append( newag )
+            print "************************ created agrec aid >%s< for agid >%s< " % \
+                (agrec.agent_id, newag.agent_id)
+            print "offsp of %s  %s" % (ag.name, ag.agent_id)
+        world.newborns.append(newag)
 
-        if world.debug > 1 :
-            print "%d on newborns_" % ( len(world.newborns))
+        if world.debug > 1:
+            print "%d on newborns_" % (len(world.newborns))
         world.agent_records_dict[newag.agent_id] = agrec
-        world.births  += 1
+        world.births += 1
 
         # mut each capb qith low prob
         num_mu_c0z = 0
         for k in newag.agentCapabilitiesDict.keys():
-            if random.random() < self.prob_mut :
-                if random.random() < 0.5 :
+            if random.random() < self.prob_mut:
+                if random.random() < 0.5:
                     mut = 1
                 else:
                     mut = -1
                 newag.agentCapabilitiesDict[k] += mut
-                if  newag.agentCapabilitiesDict[k] < 0:
-                    newag.agentCapabilitiesDict[k] = random.randint( 0,4 )
-
+                if newag.agentCapabilitiesDict[k] < 0:
+                    newag.agentCapabilitiesDict[k] = random.randint(0, 4)
 
         # coun t mutation
         num_mu = 0
         for k in newag.agentCapabilitiesDict.keys():
             if ag.agentCapabilitiesDict[k] != newag.agentCapabilitiesDict[k]:
                 num_mu += 1
-        self.mutated  += num_mu
+        self.mutated += num_mu
 
-
-
-
-    def printAllAgents (self, fmt):
+    def printAllAgents(self, fmt):
         if fmt == 's':
             print(("Agent", "ID", "Alive?", "Resources", "Age"))
-        elif  fmt == 'm':
+        elif fmt == 'm':
             print(("Agent", "ID", "Alive?", "Resources", "Age"))
         else:
-            print(("Agent", "ID", "Alive?", "Resources", "Arec resources","Age"))
+            print(("Agent", "ID", "Alive?",
+                  "Resources", "Arec resources", "Age"))
 
         for a in self.agent_list:
-            a.printAgent(  fmt, self.curT )
-
-
-
+            a.printAgent(fmt, self.curT)
 
     def get_living_agents(self):
         '''
         Return only living agents.
         '''
         return [agent for agent in self.agent_list if agent.is_alive == True]
-
-
-
-
 
     def compute(self):
         '''
@@ -635,11 +563,11 @@ class World(object):
             print (">>>Start step %d >>>" % (self.curT))
 
         # upgdate history books
-        self.game_histories[ self.curT ] = []
-        self.cur_game_history = self.game_histories[ self.curT ]
+        self.game_histories[self.curT] = []
+        self.cur_game_history = self.game_histories[self.curT]
 
-        if len( self.newborns ) > 0 :
-            self.agent_list.extend( self.newborns )
+        if len(self.newborns) > 0:
+            self.agent_list.extend(self.newborns)
             self.newborns = []
 
         # Shuffle agent order
@@ -647,17 +575,17 @@ class World(object):
 
         # the agent might ask to move or play
         for a in self.get_living_agents():
-            self.firstThisStep = True    #rest thies fklag
+            self.firstThisStep = True  # rest thies fklag
             # Run the agent step
             agrec = a.agent_record
             a.step()
 
             # make paymebnts
-            #print(( a, a.agent_record, type (agrec) ))
-            amt = - (agrec.total_decrement_Per_Step)
-            self.update_resources( a,  amt )
+            # print(( a, a.agent_record, type (agrec) ))
+            amt = -(agrec.total_decrement_Per_Step)
+            self.update_resources(a, amt)
             age = self.curT - agrec.time_born
-            #print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
+            # print((2, self.curT,a, a.agent_id, a.is_alive, a.resources, age))
             # chech if a wantys ti rwewt a birh
             if a.check_if_want_birth():
                 a.request_birth = True
@@ -675,9 +603,7 @@ class World(object):
         elif self.verbose > 0 or self.debug > 0:
             self.printStepSummary()
 
-
-
-    def update_resources ( self, a, amt ):
+    def update_resources(self, a, amt):
         '''
          amt is already pos or neg as need be
         '''
@@ -688,10 +614,9 @@ class World(object):
         for ag in self.agent_list:
             if ag.resources != ag.agent_record.resources:
                 print "*** RESOURCE MISMATCH ===> ag %d res %.6f != agrec.res %.6f" % \
-                   (ag.agent_id, ag.resources , ag.agent_record.resources )
+                    (ag.agent_id, ag.resources, ag.agent_record.resources)
 
-
-    def requestMoveTo (self, agent, destPos ):
+    def requestMoveTo(self, agent, destPos):
         '''
         agnt wants to move; chech that
         dest_loc us open and withibn agents range'
@@ -703,56 +628,51 @@ class World(object):
 
         '''
         agrange = agent.agentCapabilitiesDict["speed"]
-        destrow =  destPos.row
-        destcol =  destPos.col
-        agrow =  agent.position.row
-        agcol =  agent.position.col
+        destrow = destPos.row
+        destcol = destPos.col
+        agrow = agent.position.row
+        agcol = agent.position.col
 
-        rowdist = abs( agrow - destrow )
-        coldist = abs( agcol - destcol )
+        rowdist = abs(agrow - destrow)
+        coldist = abs(agcol - destcol)
 
-        retn = None     ### for grec
+        retn = None  # ## for grec
 
-        if rowdist > agrange or coldist  > agrange:
-             print "ag %s denied reque\st to to move--toofar" %(agent.agent_id)
+        if rowdist > agrange or coldist > agrange:
+            print "ag %s denied reque\st to to move--toofar" % (agent.agent_id)
 
-        elif  not self.space.isEmptyPosition(destPos):
-             print "ag %s denied reque\st to to move--not openr" %(agent.agent_id)
+        elif not self.space.isEmptyPosition(destPos):
+            print "ag %s denied reque\st to to move--not openr" % (agent.agent_id)
 
         else:
             # ok to move
-            self.totnumMove  += 1
-            if self.debug > 1 :
-                print "agent %s Chose to movdTo,,," %  ( agent.agent_id )
+            self.totnumMove += 1
+            if self.debug > 1:
+                print "agent %s Chose to movdTo,,," % (agent.agent_id)
 
             # move,  create game rec and add to history
-            self.space.moveTo( agent, agent.position, destPos)
+            self.space.moveTo(agent, agent.position, destPos)
             retn = destPos
 
         #     focal, action, rmv, omv, fresult , oresult, other ):
-        grec = GameRecord( agent, World.move, retn, None, None, None, None )
-        self.add_to_history ( grec )
+        grec = GameRecord(agent, World.move, retn, None, None, None, None)
+        self.add_to_history(grec)
 
-
-
-
-    def pickRandomOther ( self, me ):
+    def pickRandomOther(self, me):
         '''
         from all agents pickone at random, buut not me.
         '''
-        if len( self.agent_list ) < 2 :
+        if len(self.agent_list) < 2:
             print "cabnt rrun wit 1 or fewer adebnts"
             exit
 
         pick = me
         while pick == me:
-            r = random.randrange( len(self.agent_list) )
-            pick =  self.agent_list[r]
+            r = random.randrange(len(self.agent_list))
+            pick = self.agent_list[r]
         return pick
 
-
-
-    def requestPlayPD (self, requestor, other, focals_play):
+    def requestPlayPD(self, requestor, other, focals_play):
         '''
         agent reqestor has picked an opponent and a play
          the world will ask that player fo a response, which is
@@ -768,9 +688,8 @@ class World(object):
 
          '''
 
-        if self.debug > 1 :
-            print "agent %s Chose pd,,," %  ( requestor.agent_id )
-
+        if self.debug > 1:
+            print "agent %s Chose pd,,," % (requestor.agent_id)
 
         self.totnumofferpd += 1
 
@@ -785,54 +704,47 @@ class World(object):
 
         if others_play == World.refuse:
             # update resources
-            self.totnumrefuse  += 1
+            self.totnumrefuse += 1
             amt = self.refusal_cost
-            self.update_resources( requestor,  amt )
-            self.update_resources( other,  -amt )
-            if self.debug > 1 :
-                print "agent %s Chose to refuse,,," %  ( other.agent_id )
-            grec = GameRecord( requestor, World.pd, focals_play,\
-                            others_play, amt, -amt, other )
-
-
+            self.update_resources(requestor, amt)
+            self.update_resources(other, -amt)
+            if self.debug > 1:
+                print "agent %s Chose to refuse,,," % (other.agent_id)
+            grec = GameRecord(requestor, World.pd, focals_play,
+                              others_play, amt, -amt, other)
 
         else:
             # theyboth chose to play
-            focals_payoff, others_payoff = self.playPD ( focals_play, others_play )
-            self.update_resources( requestor,  focals_payoff )
-            self.update_resources( other,  others_payoff )
-            if self.debug > 1 :
+            focals_payoff, others_payoff = self.playPD(
+                focals_play, others_play)
+            self.update_resources(requestor, focals_payoff)
+            self.update_resources(other, others_payoff)
+            if self.debug > 1:
                 print ("PD: req  %s %d  pay %.2f  other  %s  %d pay %.2f ") % \
-                    ( requestor.agent_id, focals_play, focals_payoff, \
-                          other.agent_id,  others_play, others_payoff )
+                    (requestor.agent_id, focals_play, focals_payoff,
+                     other.agent_id, others_play, others_payoff)
 
             if focals_play == world.cooperate:
                 self.totnumcoop += 1
             else:
-                self.totnumdef  += 1
+                self.totnumdef += 1
 
             if others_play == world.cooperate:
                 self.totnumcoop += 1
             else:
-                self.totnumdef  += 1
-
+                self.totnumdef += 1
 
             # record the ganme
-            grec = GameRecord(requestor, World.pd, focals_play,\
-                              others_play, focals_payoff,\
-                              others_payoff,    other )
+            grec = GameRecord(requestor, World.pd, focals_play,
+                              others_play, focals_payoff,
+                              others_payoff, other)
 
         # in either case record and return ptr to other
-        self.add_to_history( grec)
+        self.add_to_history(grec)
         return other
 
-
-
-    def add_to_history ( self, grec ):
-        self.cur_game_history.append (grec)
-
-
-
+    def add_to_history(self, grec):
+        self.cur_game_history.append(grec)
 
     def applyTheGrimReaper(self):
         if self.debug > 0:
@@ -842,51 +754,49 @@ class World(object):
         Iterate over agents and remove any who have passed their
         or who have non-positive resources.
         '''
-        for a in  self.get_living_agents():   #.reverse():
+        for a in self.get_living_agents():  # .reverse():
             # Check if the agent has reached max lifetime
-            #if self.curT  >= self.agent_records_dict[a.agent_id].max_lifetime:
-            if self.curT  >= a.agent_record.max_lifetime:
+            # if self.curT  >=
+            # self.agent_records_dict[a.agent_id].max_lifetime:
+            if self.curT >= a.agent_record.max_lifetime:
                 if self.debug > 0:
                     arec = a.agent_record
-                    print("@@@@@@@@@@@@@2%s reached max age %d at max lifetime (curT) at %d." % \
-                          (a.agent_id, arec.max_age, arec.max_lifetime))
+                    print(
+                        "@@@@@@@@@@@@@2%s reached max age %d at max lifetime (curT) at %d." %
+                        (a.agent_id, arec.max_age, arec.max_lifetime))
                 # Set to dead
                 a.is_alive = False
-                self.totnumold  += 1
+                self.totnumold += 1
                 # remove from the space
-                self.space.removeFromSpace(a,a.position)
+                self.space.removeFromSpace(a, a.position)
 
             # Check if the agent has non-positive resources
             if a.resources <= 0:
                 if self.debug > 0:
-                    print("============>]>>>>> %s starved at %d." % \
+                    print("============>]>>>>> %s starved at %d." %
                           (a, self.curT))
                 # Set to dead
                 a.is_alive = False
                 self.totnumstarved += 1
-                self.space.removeFromSpace(a,a.position)
+                self.space.removeFromSpace(a, a.position)
 
-
-        for  a in self.agent_list:
-           if not a.is_alive :
-                if random.random() < self.rebirth_prob :
+        for a in self.agent_list:
+            if not a.is_alive:
+                if random.random() < self.rebirth_prob:
                     a.resources = world.starting_resources
                     a.max_lifetime = self.max_lifetime
                 else:
                     # renmove from akk lists an dicts
-                    if world.debug > 1 :
-                        print "$$$$$$$$$$$$$$$$$$$$$  %s is being removed..." % ( a )
-                    #del self.agent_records_dict[ a.agent_id ]
-                    ### **RRR jey error
-                    self.agent_list.remove( a )
-                    if a.position != None:
-                        self.space.removeFromSpace(a,a.position)
-
-
+                    if world.debug > 1:
+                        print "$$$$$$$$$$$$$$$$$$$$$  %s is being removed..." % (a)
+                    # del self.agent_records_dict[ a.agent_id ]
+                    # **RRR jey error
+                    self.agent_list.remove(a)
+                    if a.position is not None:
+                        self.space.removeFromSpace(a, a.position)
 
 ################################################################
-
-    def count_types ( self ):
+    def count_types(self):
         '''
         coujn t numer of speciers, feddefunred as agents wth sne nbhe
         'keep a dict, key is name
@@ -899,48 +809,44 @@ class World(object):
             name = a.name
             tot += 1
             tot_resources += a.resources
-            if agent_types_dict.has_key( name  ):
+            if name in agent_types_dict:
                 # we  tab going,,,]
-                agent_types_dict[ name ] += 1
-                agent_amts_dict[ name ] += a.resources
+                agent_types_dict[name] += 1
+                agent_amts_dict[name] += a.resources
             else:
-                agent_types_dict[ name ] = 1
-                agent_amts_dict[ name ] = a.resources
-
+                agent_types_dict[name] = 1
+                agent_amts_dict[name] = a.resources
 
         print " type  cnt   tot4type  avg/type"
-        for a  in self.agent_list:
+        for a in self.agent_list:
             name = a.name
-            if agent_types_dict[ name ]  > 1 :
-                avg = agent_amts_dict[ name ] / float (agent_types_dict[ name ] )
+            if agent_types_dict[name] > 1:
+                avg = agent_amts_dict[name] / float(agent_types_dict[name])
             else:
-                avg = agent_amts_dict[ name ]
-            print " %s   %d   %.3f  %.4f "  %\
-                    ( name, agent_types_dict[ name ], agent_amts_dict[ name ], avg )
+                avg = agent_amts_dict[name]
+            print " %s   %d   %.3f  %.4f " % \
+                (name, agent_types_dict[name],
+                 agent_amts_dict[name], avg)
 
+    def calcPopAvgTraits(self):
 
+        self.popAvgVis = numpy.mean(
+            [ag.agentCapabilitiesDict["vision"] for ag in self.agent_list])
+        self.popAvgSpd = numpy.mean(
+            [ag.agentCapabilitiesDict["speed"] for ag in self.agent_list])
+        self.popAvgDis = numpy.mean(
+            [ag.agentCapabilitiesDict["dispersal"] for ag in self.agent_list])
 
-    def calcPopAvgTraits ( self ):
-
-        self.popAvgVis = numpy.mean( \
-           [ag.agentCapabilitiesDict["vision"] for ag in self.agent_list] )
-        self.popAvgSpd = numpy.mean( \
-           [ag.agentCapabilitiesDict["speed"] for ag in self.agent_list] )
-        self.popAvgDis = numpy.mean( \
-           [ag.agentCapabilitiesDict["dispersal"] for ag in self.agent_list] )
-
-
-    def printPopAvgs( self ):
-        pop = len( self.agent_list )
-        newb = len ( self.newborns )
-        if pop == 0 :
+    def printPopAvgs(self):
+        pop = len(self.agent_list)
+        newb = len(self.newborns)
+        if pop == 0:
             print "no living agents"
             return
-        self.calcPopAvgTraits ( )
+        self.calcPopAvgTraits()
         print "====> step %d   pop %d  newb %d  Avg  vis %.3f  spd  %.3f  disp  %.3f" % \
-            ( self.curT, pop, newb,  self.popAvgVis, self.popAvgSpd, self.popAvgDis )
-
-
+            (self.curT, pop, newb, self.popAvgVis,
+             self.popAvgSpd, self.popAvgDis)
 
     def printStepSummary(self):
         '''
@@ -950,20 +856,14 @@ class World(object):
         if self.debug > 0:
             print ("  XS     +++ printStepSummary %d >>>" % (self.curT))
 
-
-
-
-
-
-
-
-    def  printActionCounts ( self  ):
-        print "%d totnumMove,%d totnumofferpd , %d totnumrefuse , %d totnumdef)" %\
-        (self.totnumMove, self.totnumofferpd ,self.totnumrefuse ,self.totnumdef)
+    def printActionCounts(self):
+        print "%d totnumMove,%d totnumofferpd , %d totnumrefuse , %d totnumdef)" % \
+            (self.totnumMove, self.totnumofferpd,
+             self.totnumrefuse, self.totnumdef)
 
         print " %d totnumcoop %d totnumstarved  %d totnumold  %d births %d mutated" % \
-        (self.totnumcoop,self.totnumstarved,self.totnumold,self.births,self.mutated )
-
+            (self.totnumcoop, self.totnumstarved,
+             self.totnumold, self.births, self.mutated)
 
     def printFinalStats(self):
         '''
@@ -974,16 +874,11 @@ class World(object):
             print ("       +++ printFinalStats %d >>>" % (self.curT))
 
         # stats
-        printActionCounts()
+        self.printActionCounts()
 
-
-
-
-    def testSpace ():
+    def testSpace(self):
         '''
         positiom are ns sare tuples
-
-
 
         get( pos)
         put( pos, oj
@@ -991,63 +886,55 @@ class World(object):
         get_neaighbors(pos, dist) )
         get_Moore-neighbors( pos , dist )
         '''
+        self.space = Space(6, 6, "Moore")
 
-        self.space = Space( 6, 6, "Moore" )
-
-
-
-
-
-
-    def chechAgentsInSpace (self ):
+    def chechAgentsInSpace(self):
         '''
         be s ure there cahced loction matches where thye reallly are
         '''
         err = 0
-        for r in range  ( self.space.num_rows):
-            for c in range ( world.space.num_cols):
-                pos = Position(r,c)
-                if self.space.isOccupiedPosition( pos ):
-                    ag = self.space.getOccupant( pos )
+        for r in range(self.space.num_rows):
+            for c in range(world.space.num_cols):
+                pos = Position(r, c)
+                if self.space.isOccupiedPosition(pos):
+                    ag = self.space.getOccupant(pos)
                     if not self.space.checkLocationInSpace(ag, pos):
                         err += 1
         if err > 0:
             print "chechAgentsInSpace found errs."
 
-
-    def saveDS( self ):
+    def saveDS(self):
 #
 
-        #p = pickle.Pickler ( self.saveFilename, 2 )
-        #p.dump(self.game_histories)
+        # p = pickle.Pickler ( self.saveFilename, 2 )
+        # p.dump(self.game_histories)
 
-        fh = open(  self.saveFilename , 'wb')
+        fh = open(self.saveFilename, 'wb')
 
-        pickle.dump(self.game_histories , fh, -1)
+        pickle.dump(self.game_histories, fh, -1)
 
-        pickle.dump(self.agent_list , fh, -1)
-        pickle.dump(self.agent_records_dict , fh, -1)
-        pickle.dump(self.newborns , fh, -1)
-        pickle.dump(self.game_histories , fh, -1)
-        pickle.dump( self.space, fh, -1)
+        pickle.dump(self.agent_list, fh, -1)
+        pickle.dump(self.agent_records_dict, fh, -1)
+        pickle.dump(self.newborns, fh, -1)
+        pickle.dump(self.game_histories, fh, -1)
+        pickle.dump(self.space, fh, -1)
         fh.close()
         return
 
+        '''
         pickle.dump(boolean, open("filename.pkl", "wb"))
 
-        pickle.dump(self.game_histories , fh )
-        print"pickling things  in '%s'" % ( self.saveFilename )
+        pickle.dump(self.game_histories, fh)
         # pickle.dump(
+        '''
+        print"pickling things  in '%s'" % (self.saveFilename)
 
-        fh.close()
-
-
-#depreicated     def get_cost_of_offspring(self, resources, sight_value, distance_value):
-        #'''
-        #Get the cost of an offspring with a given set of resources.
-        #'''
-        #return resources + sight_value * self.per_sight_offspring_cost \
-         #   + distance_value * self.per_distance_offspring_cost
+# depreicated     def get_cost_of_offspring(self, resources, sight_value, distance_value):
+        # '''
+        # Get the cost of an offspring with a given set of resources.
+        # '''
+        # return resources + sight_value * self.per_sight_offspring_cost \
+        #   + distance_value * self.per_distance_offspring_cost
 
     def __repr__(self):
         '''
@@ -1057,35 +944,32 @@ class World(object):
             .format(len(self.agents))
 
 #################################################################
-##############################################################333
-
-
+# 333
 
 
 ######################################
-#LOADING FUNCTIONS
+# LOADING FUNCTIONS
 ######################################
-
 def saveObject(obj, filename):
     with open(filename, 'wb') as output:
         pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
 
 
-def loadObject( filename ):
+def loadObject(filename):
     m = None
-    with open( filename, 'rb') as input:
+    with open(filename, 'rb') as input:
         m = pickle.load(input)
         return m
 
-#########################################################3
-##########################################################3
+# 3
+# 3
 
 
 if __name__ == "__main__":
-    #print  str(sys.argv)  # for cmd line parameters
+    # print  str(sys.argv)  # for cmd line parameters
 
     # create world, which inits space, create agents agentrecords
-    world = World (sys.argv[1:])
+    world = World(sys.argv[1:])
     if world.initial_agent_type == "allC":
         agentsC.world = world
     else:
@@ -1096,34 +980,32 @@ if __name__ == "__main__":
         print("\nThe players:")
         world.printAllAgents('f')
 
-    while  world.curT < world.stopT:
+    while world.curT < world.stopT:
         if world.debug > 0:
             print " "
             print " "
             print "\n\n  ======================= start step %d ================\n" \
-                %  ( world.curT )
+                % (world.curT)
         if world.debug > 3:
-            world.printAllAgents( 'f' )
+            world.printAllAgents('f')
             world.printActionCounts()
             world.count_types()
 
-        world.compute()  #### the top level step dynamics
+        world.compute()  # the top level step dynamics
 
         world.printPopAvgs()
 
-        if len( world.agent_list ) == 0 :
+        if len(world.agent_list) == 0:
             print " all agents dead"
             break
         world.printPopAvgs()
         world.check_agents_resources()
         world.curT += 1
 
-
     print("\nFinal scores:")
-    world.printAllAgents( 'f' )
+    world.printAllAgents('f')
     world.count_types()
     world.printActionCounts()
-
 
     if world.verbose > 1:
         world.space.displaySpace()
@@ -1132,8 +1014,6 @@ if __name__ == "__main__":
 
     world.printPopAvgs()
 
-
     world.saveDS()
 
     print("All done.")
-

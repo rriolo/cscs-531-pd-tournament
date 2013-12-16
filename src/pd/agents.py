@@ -2,13 +2,17 @@
 @date 20131124
 @author: mjbommar
 '''
-import world
+
+# Standard imports
 import random
-import agents
+
+# PD imports
+import world
 from world import *
 
 
 class Agent(object):
+
     '''
     The Agent class is a base class, meant to be extended by
     our individual players in the PD world.
@@ -97,11 +101,9 @@ pos = Position ( r, c ):
 
     '''
 
-
     # World context; agent needs to know this to ask about its surroundings.
     #world = None
-
-    def __init__(self, world ):
+    def __init__(self, world):
         '''
         Constructor, which initializes our agent.
         name identifies the owner and "species"
@@ -132,43 +134,41 @@ pos = Position ( r, c ):
         if world:
             self.resources = world.starting_resources
 
-        self.agentCapabilitiesDict = world.make_capa_amt_dict ( 3, 1,1,10)
+        self.agentCapabilitiesDict = world.make_capa_amt_dict(3, 1, 1, 10)
         self.birthThreshold = 10
         ##
         # more TBA
         #
 
-
-
-
-
-
-    def printAgent ( self, format, currT ):
+    def printAgent(self, format, currT):
         arec = self.agent_record
-        age  = currT - arec.time_born
+        age = currT - arec.time_born
 
-        if format  == 's':
-            print((self.name, self.agent_id, self.is_alive, self.resources, arec.age))
+        if format == 's':
+            print(
+                (self.name,
+                 self.agent_id,
+                 self.is_alive,
+                 self.resources,
+                 arec.age))
         elif format == 'm':
-            print((self.name, self.agent_id, self.is_alive, self.resources,\
-                       arec.resources, age, self.num_offspring))
+            print((self.name, self.agent_id, self.is_alive, self.resources,
+                   arec.resources, age, self.num_offspring))
         else:
-            print((self.name, self.agent_id, self.is_alive, self.resources,\
-                       arec.resources, age))
+            print((self.name, self.agent_id, self.is_alive, self.resources,
+                   arec.resources, age))
             s = "agentCapabitiesDict.keys():"
             for k in self.agentCapabilitiesDict.keys():
                           ###
-                s +=  " %s=%d"   % (  k, self.agentCapabilitiesDict[k])
-            s += " total_decrement_Per_Step=%d" % ( \
-                arec.total_decrement_Per_Step )
+                s += " %s=%d" % (k, self.agentCapabilitiesDict[k])
+            s += " total_decrement_Per_Step=%d" % (
+                arec.total_decrement_Per_Step)
             print s
-
-
 
     def send_agent_id(self):
         return self.agent_id
 
-    def choose_reply( self, requestor ):
+    def choose_reply(self, requestor):
         '''
         requestor is ptr to agent who wna t to play PD eith you
            you have to rpely 1 of 3 choices'
@@ -191,8 +191,7 @@ pos = Position ( r, c ):
         else:
             return world.cooperate
 
-
-    def choose_action( self ):
+    def choose_action(self):
         '''
         your step, so yhou have t o do
            you have to rpely 1 of 3 choices'
@@ -207,8 +206,6 @@ pos = Position ( r, c ):
         '''
         return world.cooperate
 
-
-
     def tryBirth(self):
         '''
         assemble  info for requesm eg mutationg
@@ -219,28 +216,31 @@ pos = Position ( r, c ):
         sp = self.agentCapabilitiesDict["speed"]
         disp = self.agentCapabilitiesDict["dispersal"]
         costs = world.calc_total_cost_per_step  \
-( self.agentCapabilitiesDict )
+            (self.agentCapabilitiesDict)
         end = costs * world.days_costs_required
 
         if end < self.resources:
-            world.requestOffspring (self,  vis,sp,disp, end )
-            if world.debug > 1 :
-                print(("Succeeded in requesting offspring", self, end, self.resources))
+            world.requestOffspring(self, vis, sp, disp, end)
+            if world.debug > 1:
+                print(
+                    ("Succeeded in requesting offspring",
+                     self,
+                     end,
+                     self.resources))
 
-	else:
-            if world.debug > 1 :
-                print(("Failed to request offspring", self, end, self.resources))
+        else:
+            if world.debug > 1:
+                print(
+                    ("Failed to request offspring",
+                     self,
+                     end,
+                     self.resources))
 
-
-
-
-    def check_if_want_birth ( self ):
+    def check_if_want_birth(self):
         '''
         a chance to bdelay brth even if they neet technical gpecs
         '''
-        return  True
-
-
+        return True
 
     def step(self):
         '''
@@ -253,54 +253,57 @@ pos = Position ( r, c ):
              ex
              *wihou t  lokin at whhat is leagal! so t easeds a lot of turn.s
         '''
-        if world.debug > 1 :
+        if world.debug > 1:
             print("Ag .%s step " % (self.agent_id))
 
-        if len( world.agent_list ) < 2 :
+        if len(world.agent_list) < 2:
 
             print "cant run with 1 or fewer agents"
             return None
 
-        if world.debug >   0:
+        if world.debug > 0:
             # testing
-            openvis = world.space.openVisibleCells( self )
+            openvis = world.space.openVisibleCells(self)
             if world.debugb > 2:
                 print "%s at %s can see open  " % \
-                ( self.agent_id, world.space.posStr( self.position ) )
+                    (self.agent_id, world.space.posStr(self.position))
             #
-            openplay =  world.space.getPlayableAgents( self )
+            openplay = world.space.getPlayableAgents(self)
 
-        if  random.random() < 0.5:
+        if random.random() < 0.5:
              # play pd now, pick ran oppdo
-            if world.debug > 1 :
+            if world.debug > 1:
                 print "Chose to playe,,,"
-            other = world.pickRandomOther( self )
+            other = world.pickRandomOther(self)
             play = world.cooperate
-            grec = world.requestPlayPD ( self, other, play)
+            grec = world.requestPlayPD(self, other, play)
 
         else:
             # see if theere is  randomly chosesn place to momve
-            if world.debug > 1 :
+            if world.debug > 1:
                 print "Chose to move,,,"
-            opensps = world.space.getOpenSpaces( self.position, \
-                                         self.agentCapabilitiesDict["speed"] )
+            opensps = world.space.getOpenSpaces(self.position,
+                                                self.agentCapabilitiesDict["speed"])
             if len(opensps) == 0:
                 if world.debug > 1:
-                    print " aid %s no where to go"%(agent.agent_id)
+                    print " aid %s no where to go" % (agent.agent_id)
 
                 #  focal, action, rmv, omv, fresult , oresult, other ):
-                grec = GameRecord( self, World.move, None, None, None, None, None )
-                world.add_to_history ( grec )
+                grec = GameRecord(
+                    self,
+                    World.move,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None)
+                world.add_to_history(grec)
                 return
 
-
             #  opick abn oprex cell to go to
-            r = random.randrange( len( opensps ) )
-            pickpos =  opensps[r]
-            grec = world.requestMoveTo ( self , pickpos )
-
-
-
+            r = random.randrange(len(opensps))
+            pickpos = opensps[r]
+            grec = world.requestMoveTo(self, pickpos)
 
     def __repr__(self):
         '''
@@ -314,4 +317,3 @@ if __name__ == "__main__":
 
 
 ###############################################################
-
